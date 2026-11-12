@@ -2,7 +2,7 @@
 // Data: schemat film i Supabase (vyerna v_*, s_person). Se Obsidian: Film och serier - Datamodell.
 import { api, allaRader, login, logout, inloggad, esc, fmt, tecken, enc } from './lib.js';
 
-const VERSION = '0.1.0';
+const VERSION = '0.1.1';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -226,6 +226,15 @@ async function filmerFor(koppling, faltId, tabellNamn, namn) {
   return filmlista(ut);
 }
 
+async function filmerForLand(iso) {
+  const kopp = await allaRader(`v_film_land?land=eq.${enc(iso)}&select=film_id&order=film_id`);
+  const ids = [...new Set(kopp.map((x) => x.film_id))];
+  const ut = [];
+  for (let i = 0; i < ids.length; i += 150) ut.push(...await api(`v_film?${V()}&film_id=in.(${ids.slice(i, i + 150).join(',')})&select=titel,ar,betyg,typ,tmdb_id&order=betyg.desc,ar.asc`));
+  ut.sort((a, b) => b.betyg - a.betyg || (a.ar ?? 0) - (b.ar ?? 0));
+  return filmlista(ut);
+}
+
 async function bolag() {
   const p = params(); const min = Number(p.get('min') || 5), sok = p.get('sok') || '';
   const rader = await api(`v_bolag?${V()}&antal=gte.${min}${sok ? `&bolag=ilike.*${enc(sok)}*` : ''}&order=diff_mot_ditt_snitt.desc&limit=300&select=bolag,land,antal,snittbetyg,diff_mot_ditt_snitt`);
@@ -278,7 +287,7 @@ async function lander() {
       { nyckel: 'maxbetyg', rubrik: 'Max', num: true, html: (r) => fmt(r.maxbetyg, 1) },
       { nyckel: 'minbetyg', rubrik: 'Min', num: true, html: (r) => fmt(r.minbetyg, 1) },
       { nyckel: 'diff_mot_ditt_snitt', rubrik: 'Mot mitt snitt', html: (r) => diffStapel(r.diff_mot_ditt_snitt) },
-    ], { sort: 'antal' })}`;
+    ], { sort: 'antal', klick: (r) => filmerForLand(r.land) })}`;
   app.querySelectorAll('.knappar button').forEach((b) => { b.onclick = () => { satt('visa', b.dataset.v); visa(); }; });
   kopplaTips(app);
 }
