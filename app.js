@@ -2,7 +2,7 @@
 // Data: schemat film i Supabase (vyerna v_*, s_person). Se Obsidian: Film och serier - Datamodell.
 import { api, allaRader, login, logout, inloggad, esc, fmt, tecken, enc } from './lib.js';
 
-const VERSION = '0.1.1';
+const VERSION = '0.2.0';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -295,10 +295,17 @@ async function lander() {
 async function filmer() {
   const sok = params().get('sok') || '';
   const alla = await allaRader(`v_film?${V()}&select=film_id,titel,originaltitel,ar,betyg,tmdb_betyg_5,diff_mot_tmdb,datum,typ,tmdb_id,letterboxd_uri&order=film_id`);
+  // Filmer markerade som sedda i Letterboxd men utan dagboksinlägg (läget vid senaste exporten)
+  let saknas = [];
+  try { saknas = await api(`v_utan_dagbok?${V()}&select=titel,ar,betyg,letterboxd_uri&order=titel`); } catch { /* vyn saknas ännu */ }
+  const saknasHtml = saknas.length ? `<details class="kort" style="margin:.5rem 0 1rem"><summary>Saknar dagbok i Letterboxd (${fmt(saknas.length)})</summary>
+      <p class="muted">Sedda eller betygsatta utan dagboksinlägg, enligt senaste exporten. Öppna filmen i Letterboxd och logga den med datum.</p>
+      <ul class="lista-filmer">${saknas.map((f) => `<li>${f.betyg != null ? `${stjarnor(f.betyg)} ` : ''}<a href="${esc(f.letterboxd_uri)}" target="_blank" rel="noopener">${esc(f.titel)}</a> <span class="muted">${f.ar ?? ''}</span></li>`).join('')}</ul></details>` : '';
   const q = sok.toLowerCase();
   const rader = q ? alla.filter((f) => `${f.titel} ${f.originaltitel}`.toLowerCase().includes(q)) : alla;
   app.innerHTML = `
     <h1>Filmer</h1>
+    ${saknasHtml}
     <div class="filter"><label>Sök <input id="f-sok" type="search" value="${esc(sok)}" placeholder="titel"></label><span class="muted">${fmt(rader.length)} av ${fmt(alla.length)}</span></div>
     ${tabell(rader, [
       { nyckel: 'titel', rubrik: 'Titel', html: (f) => `<a href="${tmdbUrl(f.typ, f.tmdb_id)}" target="_blank" rel="noopener">${esc(f.titel)}</a>${f.originaltitel && f.originaltitel !== f.titel ? ` <span class="muted">${esc(f.originaltitel)}</span>` : ''}${f.typ === 'serie' ? ' <span class="muted">(serie)</span>' : ''}` },
