@@ -2,7 +2,7 @@
 // Data: schemat film i Supabase (vyerna v_*, s_person). Se Obsidian: Film och serier - Datamodell.
 import { api, allaRader, login, logout, inloggad, esc, fmt, tecken, enc } from './lib.js';
 
-const VERSION = '0.2.1';
+const VERSION = '0.3.0';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -331,7 +331,44 @@ function inloggning(fel = '') {
   };
 }
 
-const SIDOR = { '': oversikt, personer, genrer, bolag, lander, filmer };
+async function tittat() {
+  const [manader, taggar] = await Promise.all([
+    api(`v_tittat_manad?${V()}&select=manad,antal,omtittar&order=manad`),
+    api(`v_tagg?${V()}&select=tagg,typ,visas_som,antal,snittbetyg&order=antal.desc`),
+  ]);
+  if (!manader.length) { app.innerHTML = `<h1>Tittat</h1><p class="muted">Inga loggningar med visningsdatum för ${esc(vem)} ännu.</p>`; return; }
+  const tot = manader.reduce((s, m) => s + m.antal, 0), om = manader.reduce((s, m) => s + m.omtittar, 0);
+  const perAr = new Map();
+  manader.forEach((m) => { const ar = m.manad.slice(0, 4); perAr.set(ar, (perAr.get(ar) ?? 0) + m.antal); });
+  const arData = [...perAr.entries()].map(([ar, n]) => ({ etikett: ar, varde: n, tips: `<b>${ar}</b><br>${fmt(n)} loggade visningar` }));
+  const bio = taggar.find((t) => t.tagg === 'på bio');
+  const TYPER = [['plats', 'Var'], ['sallskap', 'Med vem'], ['format', 'Format'], ['amne', 'Ämne'], ['ovrigt', 'Övrigt']];
+  const lista = (tagg) => async () => {
+    const rader = await api(`v_loggning?${V()}&taggar=cs.${enc(`{"${tagg}"}`)}&order=datum.desc&limit=300&select=titel,ar,datum,betyg,tmdb_id,typ`);
+    return rader.length ? `<ul class="lista-filmer">${rader.map((f) => `<li>${f.betyg != null ? `${stjarnor(f.betyg)} ` : ''}${f.tmdb_id ? `<a href="${tmdbUrl(f.typ, f.tmdb_id)}" target="_blank" rel="noopener">${esc(f.titel)}</a>` : esc(f.titel)} <span class="muted">${f.ar ?? ''} · ${f.datum ?? ''}</span></li>`).join('')}</ul>` : '<span class="muted">Inga filmer.</span>';
+  };
+  const tabeller = TYPER.map(([typ, rubrik]) => {
+    const rader = taggar.filter((t) => t.typ === typ);
+    if (!rader.length) return '';
+    return `<h2>${rubrik}</h2>` + tabell(rader, [
+      { nyckel: 'visas_som', rubrik: 'Etikett' },
+      { nyckel: 'antal', rubrik: 'Visningar', num: true, html: (r) => fmt(r.antal) },
+      { nyckel: 'snittbetyg', rubrik: 'Snittbetyg', num: true, html: (r) => fmt(r.snittbetyg, 2) },
+    ], { sort: 'antal', klick: (r) => lista(r.tagg)() });
+  }).join('');
+  app.innerHTML = `
+    <h1>Tittat</h1><p class="muted">${esc(vem)}s loggade visningar i Letterboxd, med datum och etiketter. Klicka på en rad för att se filmerna.</p>
+    <div class="tiles">
+      <div class="tile"><div class="v">${fmt(tot)}</div><div class="k">loggade visningar</div></div>
+      <div class="tile"><div class="v">${fmt(om)}</div><div class="k">omtittar</div></div>
+      ${bio ? `<div class="tile"><div class="v">${fmt(bio.antal)}</div><div class="k">på bio</div></div>` : ''}
+    </div>
+    <div class="kort"><h2>Visningar per år</h2>${stapelDiagram(arData, { format: (v) => `${fmt(v)} visningar` })}</div>
+    ${tabeller}`;
+  kopplaTips(app);
+}
+
+const SIDOR = { '': oversikt, personer, genrer, bolag, lander, filmer, tittat };
 let visarNr = 0;
 async function visa() {
   const route = (location.hash.replace(/^#\/?/, '').split('?')[0]) || '';
