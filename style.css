@@ -93,3 +93,13 @@ svg.diagram .grid { stroke: var(--grid); }
 .forklaring .skala span { width: 28px; height: 10px; }
 .tips { position: fixed; z-index: 20; pointer-events: none; background: #0c0b0a; border: 1px solid var(--linje); border-radius: 8px; padding: .4rem .6rem; font-size: .85rem; max-width: 260px; box-shadow: 0 4px 16px rgba(0,0,0,.5); }
 .tips b { color: var(--text); }
+
+/* ikonmeny: ikon + text på bred skärm, bara ikon på telefon */
+.tabs a { display: inline-flex; align-items: center; gap: .4rem; }
+.ik { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+@media (max-width: 700px) {
+  .tabs a .txt { display: none; }
+  .tabs a { padding: .45rem .7rem; }
+  .topbar { gap: .5rem; padding: .5rem .75rem; }
+  .tabs { justify-content: space-between; }
+}

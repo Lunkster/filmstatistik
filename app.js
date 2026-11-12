@@ -2,7 +2,7 @@
 // Data: schemat film i Supabase (vyerna v_*, s_person). Se Obsidian: Film och serier - Datamodell.
 import { api, allaRader, login, logout, inloggad, esc, fmt, tecken, enc } from './lib.js';
 
-const VERSION = '0.2.0';
+const VERSION = '0.2.1';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
