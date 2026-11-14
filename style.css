@@ -109,3 +109,5 @@ svg.diagram .grid { stroke: var(--grid); }
 .ny-lista { padding-left: 1.2rem; display: grid; gap: .4rem; }
 .ny-dag h2 { margin-top: 1.5rem; }
 #version { color: inherit; }
+.knapp { display: inline-block; text-decoration: none; border: 1px solid var(--linje); border-radius: 8px; padding: .45rem .8rem; }
+a.knapp.prim { background: var(--guld); color: #1a1408; border-color: var(--guld); font-weight: 600; }
