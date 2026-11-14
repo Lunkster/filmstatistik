@@ -23,6 +23,25 @@ export async function api(path, { fresh = false } = {}) {
   try { return await p; } catch (e) { cache.delete(path); throw e; }
 }
 
+export const glomCache = () => cache.clear();
+
+// Anropa en funktion i schemat film (POST /rpc/...)
+export async function rpc(fn, args) {
+  const s = await session(true);
+  const r = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, {
+    method: 'POST',
+    headers: { apikey: SUPABASE_KEY, Accept: 'application/json', 'Content-Type': 'application/json', 'Content-Profile': 'film', Authorization: `Bearer ${s.access_token}` },
+    body: JSON.stringify(args),
+  });
+  if (r.status === 401) { logout(); location.hash = '#/'; }
+  if (!r.ok) {
+    let m = await r.text();
+    try { m = JSON.parse(m).message ?? m; } catch { /* */ }
+    throw new Error(m);
+  }
+  return r.json();
+}
+
 // PostgREST ger högst 1000 rader per anrop – hämta i sidor (path måste ha select= och order=)
 export async function allaRader(path) {
   const ut = [];

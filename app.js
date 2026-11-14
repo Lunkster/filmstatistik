@@ -1,8 +1,9 @@
 // Filmstatistik – vilka regissörer, skådespelare, genrer, bolag och länder jag gillar.
 // Data: schemat film i Supabase (vyerna v_*, s_person). Se Obsidian: Film och serier - Datamodell.
-import { api, allaRader, login, logout, inloggad, esc, fmt, tecken, enc } from './lib.js';
+import { api, allaRader, rpc, glomCache, login, logout, inloggad, esc, fmt, tecken, enc } from './lib.js';
+import { lasZip } from './zip.js';
 
-const VERSION = '0.3.0';
+const VERSION = '0.4.0';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -368,7 +369,65 @@ async function tittat() {
   kopplaTips(app);
 }
 
-const SIDOR = { '': oversikt, personer, genrer, bolag, lander, filmer, tittat };
+// ---------- importera Letterboxd-export ----------
+async function importera() {
+  const val = [...vemSel.options].map((o) => o.value);
+  app.innerHTML = `
+    <h1>Importera</h1>
+    <p class="muted">Ladda upp din export från Letterboxd (Settings → Data → Export your data) som den är, som zip-fil. Betyg, dagbok och etiketter uppdateras. Filerna läses i webbläsaren och bara betyg och dagbok skickas vidare.</p>
+    <div class="kort imp">
+      <label>Vems export? <select id="imp-vem">${val.map((v) => `<option${v === vem ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
+      <label>Fil <input type="file" id="imp-fil" accept=".zip,.csv" multiple></label>
+      <div id="imp-info" class="muted"></div>
+      <div><button class="prim" id="imp-knapp" disabled>Importera</button></div>
+      <div id="imp-res" aria-live="polite"></div>
+    </div>`;
+  const fil = document.getElementById('imp-fil'), info = document.getElementById('imp-info'),
+    knapp = document.getElementById('imp-knapp'), res = document.getElementById('imp-res');
+  let data = null;
+  const rader = (t) => (t ? Math.max(0, t.trim().split(/\r?\n/).length - 1) : 0);
+  fil.addEventListener('change', async () => {
+    data = null; knapp.disabled = true; res.innerHTML = ''; info.textContent = '';
+    try {
+      let ratings = null, diary = null;
+      for (const f of fil.files) {
+        if (/\.zip$/i.test(f.name)) {
+          const z = await lasZip(await f.arrayBuffer());
+          const hitta = (n) => z.namn.filter((x) => x === n || x.endsWith(`/${n}`)).sort((a, b) => a.length - b.length)[0];
+          ratings = (await z.text(hitta('ratings.csv'))) ?? ratings;
+          diary = (await z.text(hitta('diary.csv'))) ?? diary;
+        } else if (/^ratings.*\.csv$/i.test(f.name)) ratings = await f.text();
+        else if (/^diary.*\.csv$/i.test(f.name)) diary = await f.text();
+      }
+      if (!ratings) throw new Error('Hittade ingen ratings.csv i filen.');
+      data = { ratings, diary };
+      info.textContent = `Hittade ${fmt(rader(ratings))} betyg och ${fmt(rader(diary))} dagboksposter.`;
+      knapp.disabled = false;
+    } catch (e) { info.innerHTML = `<span class="fel">${esc(e.message)}</span>`; }
+  });
+  knapp.addEventListener('click', async () => {
+    if (!data) return;
+    const vemImp = document.getElementById('imp-vem').value;
+    knapp.disabled = true; res.innerHTML = '<p class="muted">Importerar …</p>';
+    try {
+      const r = await rpc('importera_export', { _anvandare: vemImp, _ratings: data.ratings, _diary: data.diary ?? '' });
+      glomCache();
+      const nya = r.nya_titlar ?? [];
+      res.innerHTML = `
+        <div class="tiles">
+          <div class="tile"><div class="v">${fmt(r.betyg_nya)}</div><div class="k">nya betyg</div></div>
+          <div class="tile"><div class="v">${fmt(r.betyg_andrade)}</div><div class="k">ändrade betyg</div></div>
+          <div class="tile"><div class="v">${fmt(r.betyg_borttagna)}</div><div class="k">borttagna betyg</div></div>
+          <div class="tile"><div class="v">${fmt(r.loggningar_nya)}</div><div class="k">nya loggningar</div></div>
+        </div>
+        ${nya.length ? `<p>Nya betyg: ${nya.slice(0, 40).map(esc).join(', ')}${nya.length > 40 ? ` och ${fmt(nya.length - 40)} till` : ''}.</p>` : ''}
+        <p class="muted">Nya filmer kopplas till TMDB i bakgrunden, det tar några minuter. Statistiken uppdateras av nattjobbet, eller direkt vid nästa sidladdning för betyg och dagbok.</p>`;
+    } catch (e) { res.innerHTML = `<p class="fel">${esc(e.message)}</p>`; }
+    knapp.disabled = false;
+  });
+}
+
+const SIDOR = { '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera };
 let visarNr = 0;
 async function visa() {
   const route = (location.hash.replace(/^#\/?/, '').split('?')[0]) || '';

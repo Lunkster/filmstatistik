@@ -6,12 +6,12 @@
   <meta name="theme-color" content="#141312">
   <meta name="robots" content="noindex">
   <title>Filmstatistik</title>
-  <link rel="icon" href="logo.svg?v=0.3.0" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=0.3.0">
+  <link rel="icon" href="logo.svg?v=0.4.0" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=0.4.0">
 </head>
 <body>
   <header class="topbar">
-    <a href="#/" class="brand" aria-label="Filmstatistik" title="Filmstatistik"><img src="logo.svg?v=0.3.0" alt="" class="logo"></a>
+    <a href="#/" class="brand" aria-label="Filmstatistik" title="Filmstatistik"><img src="logo.svg?v=0.4.0" alt="" class="logo"></a>
     <nav class="tabs" aria-label="Huvudmeny" hidden>
       <a href="#/" data-route="" aria-label="Översikt" title="Översikt"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="12" width="4" height="8"/><rect x="10" y="4" width="4" height="16"/><rect x="16" y="9" width="4" height="11"/></svg><span class="txt">Översikt</span></a>
       <a href="#/personer" data-route="personer" aria-label="Personer" title="Personer"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span class="txt">Personer</span></a>
@@ -20,6 +20,7 @@
       <a href="#/lander" data-route="lander" aria-label="Länder" title="Länder"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V3"/><path d="M5 4h14l-3 4.5L19 13H5"/></svg><span class="txt">Länder</span></a>
       <a href="#/filmer" data-route="filmer" aria-label="Filmer" title="Filmer"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="1"/><path d="M7 4v16M17 4v16M3 9h4M3 15h4M17 9h4M17 15h4"/></svg><span class="txt">Filmer</span></a>
     <a href="#/tittat" data-route="tittat" aria-label="Tittat" title="Tittat"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="1"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span class="txt">Tittat</span></a>
+      <a href="#/importera" data-route="importera" aria-label="Importera" title="Importera"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7 10l5 5 5-5M4 20h16"/></svg><span class="txt">Importera</span></a>
     </nav>
     <label class="vem" hidden><select id="vem" aria-label="Vems betyg" title="Vems betyg"></select></label>
   </header>
@@ -27,12 +28,12 @@
   <main id="app" aria-live="polite"><p class="muted center">Laddar …</p></main>
 
   <footer class="foot">
-    <span id="version">v0.3.0</span> · data från Letterboxd, Filmtipset och <a href="https://www.themoviedb.org/" rel="noopener">TMDB</a>
+    <span id="version">v0.4.0</span> · data från Letterboxd, Filmtipset och <a href="https://www.themoviedb.org/" rel="noopener">TMDB</a>
     · <a href="#/logga-ut" id="loggaut" hidden>Logga ut</a>
     <div class="tmdb-not">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>
   </footer>
 
   <div id="tips" class="tips" role="tooltip" hidden></div>
-  <script type="module" src="app.js?v=0.3.0"></script>
+  <script type="module" src="app.js?v=0.4.0"></script>
 </body>
 </html>

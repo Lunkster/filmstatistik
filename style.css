@@ -103,3 +103,6 @@ svg.diagram .grid { stroke: var(--grid); }
   .topbar { gap: .5rem; padding: .5rem .75rem; }
   .tabs { justify-content: space-between; }
 }
+
+.imp { display: grid; gap: .8rem; max-width: 40rem; }
+.imp label { display: grid; gap: .25rem; }
