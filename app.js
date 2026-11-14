@@ -4,7 +4,7 @@ import { api, allaRader, rpc, glomCache, login, logout, inloggad, esc, fmt, teck
 import { lasZip } from './zip.js';
 import { renderNyheter } from './nyheter.js';
 
-const VERSION = '0.4.3';
+const VERSION = '0.4.4';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -297,6 +297,10 @@ async function lander() {
 async function filmer() {
   const sok = params().get('sok') || '';
   const alla = await allaRader(`v_film?${V()}&select=film_id,titel,originaltitel,ar,betyg,tmdb_betyg_5,diff_mot_tmdb,datum,typ,tmdb_id,letterboxd_uri&order=film_id`);
+  // Visningsdatum från dagboken; saknas det visas betygsdatumet dämpat
+  let sedd = new Map();
+  try { sedd = new Map((await allaRader(`v_film_sedd?${V()}&select=film_id,sedd&order=film_id`)).map((r) => [r.film_id, r.sedd])); } catch { /* vyn saknas ännu */ }
+  alla.forEach((f) => { f.sedd = sedd.get(f.film_id) ?? null; f.sedd_sort = f.sedd ?? f.datum; });
   // Filmer markerade som sedda i Letterboxd men utan dagboksinlägg (läget vid senaste exporten)
   let saknas = [];
   try { saknas = await api(`v_utan_dagbok?${V()}&select=titel,ar,betyg,letterboxd_uri&order=titel`); } catch { /* vyn saknas ännu */ }
@@ -315,8 +319,8 @@ async function filmer() {
       { nyckel: 'betyg', rubrik: 'Mitt betyg', html: (f) => f.letterboxd_uri ? `<a href="${esc(f.letterboxd_uri)}" target="_blank" rel="noopener" style="text-decoration:none">${stjarnor(f.betyg)}</a>` : stjarnor(f.betyg) },
       { nyckel: 'tmdb_betyg_5', rubrik: 'TMDB', num: true, html: (f) => fmt(f.tmdb_betyg_5, 1) },
       { nyckel: 'diff_mot_tmdb', rubrik: 'Mot TMDB', html: (f) => diffStapel(f.diff_mot_tmdb == null ? null : Number(f.diff_mot_tmdb), 2) },
-      { nyckel: 'datum', rubrik: 'Betygsatt', html: (f) => f.datum ?? '–' },
-    ], { sort: 'datum' })}`;
+      { nyckel: 'sedd_sort', rubrik: 'Sedd', html: (f) => f.sedd ?? (f.datum ? `<span class="muted" title="Visningsdatum saknas, visar betygsdatum">${f.datum}</span>` : '–') },
+    ], { sort: 'sedd_sort' })}`;
   let t; const inp = document.getElementById('f-sok');
   inp.oninput = (e) => { clearTimeout(t); t = setTimeout(() => { satt('sok', e.target.value.trim()); visa().then(() => { const i = document.getElementById('f-sok'); i.focus(); i.setSelectionRange(i.value.length, i.value.length); }); }, 350); };
 }
