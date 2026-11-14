@@ -4,7 +4,7 @@ import { api, allaRader, rpc, glomCache, login, logout, inloggad, esc, fmt, teck
 import { lasZip } from './zip.js';
 import { renderNyheter } from './nyheter.js';
 
-const VERSION = '0.4.6';
+const VERSION = '0.4.8';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -381,14 +381,25 @@ async function importera() {
     <h1>Importera</h1>
     <p class="muted">Ladda upp din export från Letterboxd som den är, som zip-fil. Betyg, dagbok och etiketter uppdateras. Filerna läses i webbläsaren och bara betyg och dagbok skickas vidare.</p>
     <div class="kort imp">
-      <div><a class="knapp prim" href="https://letterboxd.com/data/export/" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Hämta export från Letterboxd</a>
-        <p class="muted">Öppnar Letterboxd. Är du inloggad där börjar zip-filen laddas ner direkt. Fungerar inte knappen: kopiera adressen och klistra in den i webbläsaren. Välj sedan filen här nedanför.</p><code>https://letterboxd.com/data/export/</code></div>
+      <div id="imp-exp"></div>
       <label>Vems export? <select id="imp-vem">${val.map((v) => `<option${v === vem ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
       <label>Fil <input type="file" id="imp-fil" accept=".zip,.csv" multiple></label>
       <div id="imp-info" class="muted"></div>
       <div><button class="prim" id="imp-knapp" disabled>Importera</button></div>
       <div id="imp-res" aria-live="polite"></div>
     </div>`;
+  const EXP = 'https://letterboxd.com/data/export/';
+  const mobil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1); // iPadOS ger sig ut för att vara en Mac
+  document.getElementById('imp-exp').innerHTML = mobil
+    ? `<button class="prim" id="imp-kopiera" type="button">Kopiera exportlänk</button>
+       <p class="muted">Ett tryck på länken öppnar Letterboxd-appen, så kopiera i stället adressen, klistra in den i webbläsarens adressfält och gå dit. Är du inloggad börjar zip-filen laddas ner. Välj sedan filen här nedanför.</p>`
+    : `<a class="knapp prim" href="${EXP}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Hämta export från Letterboxd</a>
+       <p class="muted">Är du inloggad på Letterboxd börjar zip-filen laddas ner direkt. Välj sedan filen här nedanför.</p>`;
+  const kopiera = document.getElementById('imp-kopiera');
+  if (kopiera) kopiera.addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(EXP); kopiera.textContent = 'Kopierad: klistra in i webbläsaren'; }
+    catch { kopiera.insertAdjacentHTML('afterend', `<p><code>${EXP}</code></p>`); }
+  });
   const fil = document.getElementById('imp-fil'), info = document.getElementById('imp-info'),
     knapp = document.getElementById('imp-knapp'), res = document.getElementById('imp-res');
   let data = null;

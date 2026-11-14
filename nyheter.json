@@ -2,7 +2,7 @@
  {
   "datum": "2026-11-14",
   "punkter": [
-   "**Importera:** knapp som öppnar Letterboxds exportlänk, så börjar zip-filen laddas ner direkt om du är inloggad där (v0.4.5, v0.4.6)",
+   "**Importera:** knapp för Letterboxds exportlänk. På mobilen kopierar den adressen, eftersom en länk annars öppnar Letterboxd-appen (v0.4.5–v0.4.8)",
    "**Filmer:** kolumnen Sedd visar nu datumet du såg filmen, inte när betyget lades in. Saknas det visas betygsdatumet dämpat (v0.4.4)",
    "**Nattlig kontroll:** nya visningar och betyg hämtas varje natt från Letterboxds flöde för både Henrik och Tuva. De 20 senaste posterna kontrolleras. Etiketter följer inte med, de kommer vid nästa import (v0.4.3)",
    "**Som app:** lägg sidan på hemskärmen. iPhone: Safari → Dela → Lägg till på hemskärmen (v0.4.1)",
