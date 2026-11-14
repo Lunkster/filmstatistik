@@ -4,7 +4,7 @@ import { api, allaRader, rpc, glomCache, login, logout, inloggad, esc, fmt, teck
 import { lasZip } from './zip.js';
 import { renderNyheter } from './nyheter.js';
 
-const VERSION = '0.4.8';
+const VERSION = '0.4.9';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -390,14 +390,13 @@ async function importera() {
     </div>`;
   const EXP = 'https://letterboxd.com/data/export/';
   const mobil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1); // iPadOS ger sig ut för att vara en Mac
-  document.getElementById('imp-exp').innerHTML = mobil
-    ? `<button class="prim" id="imp-kopiera" type="button">Kopiera exportlänk</button>
-       <p class="muted">Ett tryck på länken öppnar Letterboxd-appen, så kopiera i stället adressen, klistra in den i webbläsarens adressfält och gå dit. Är du inloggad börjar zip-filen laddas ner. Välj sedan filen här nedanför.</p>`
-    : `<a class="knapp prim" href="${EXP}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Hämta export från Letterboxd</a>
-       <p class="muted">Är du inloggad på Letterboxd börjar zip-filen laddas ner direkt. Välj sedan filen här nedanför.</p>`;
+  document.getElementById('imp-exp').innerHTML = `
+    <div class="knappar-rad"><a class="knapp prim" href="${EXP}" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Hämta export från Letterboxd</a>
+    ${mobil ? '<button type="button" id="imp-kopiera">Kopiera länk</button>' : ''}</div>
+    <p class="muted">Är du inloggad på Letterboxd börjar zip-filen laddas ner direkt. ${mobil ? 'Öppnas Letterboxd-appen i stället: tryck Kopiera länk och klistra in adressen i webbläsarens adressfält. ' : ''}Välj sedan filen här nedanför.</p>`;
   const kopiera = document.getElementById('imp-kopiera');
   if (kopiera) kopiera.addEventListener('click', async () => {
-    try { await navigator.clipboard.writeText(EXP); kopiera.textContent = 'Kopierad: klistra in i webbläsaren'; }
+    try { await navigator.clipboard.writeText(EXP); kopiera.textContent = 'Kopierad, klistra in i webbläsaren'; }
     catch { kopiera.insertAdjacentHTML('afterend', `<p><code>${EXP}</code></p>`); }
   });
   const fil = document.getElementById('imp-fil'), info = document.getElementById('imp-info'),
