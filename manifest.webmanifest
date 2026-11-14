@@ -1,0 +1,16 @@
+{
+  "name": "Filmstatistik",
+  "short_name": "Film",
+  "description": "Vilka genrer, skådespelare, regissörer och bolag jag gillar mest och minst",
+  "lang": "sv",
+  "start_url": "./#/",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#141312",
+  "theme_color": "#141312",
+  "icons": [
+    { "src": "ikon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "ikon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "ikon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

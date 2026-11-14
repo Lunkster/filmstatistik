@@ -37,7 +37,7 @@ h2 { font-size: 1.1rem; margin: 1.5rem 0 .5rem; }
 .vem { color: var(--text-3); font-size: .9rem; display: flex; gap: .4rem; align-items: center; }
 
 main { flex: 1; width: 100%; max-width: 1100px; margin: 0 auto; padding: 1rem; }
-.foot { color: var(--text-3); font-size: .85rem; text-align: center; padding: 1.5rem 1rem; border-top: 1px solid var(--linje); }
+.foot { color: var(--text-3); font-size: .85rem; text-align: center; padding: 1.5rem 1rem calc(1.5rem + env(safe-area-inset-bottom)); border-top: 1px solid var(--linje); }
 .tmdb-not { font-size: .75rem; margin-top: .25rem; }
 
 select, input, button { font: inherit; color: var(--text); background: var(--yta-2); border: 1px solid var(--linje); border-radius: 8px; padding: .4rem .6rem; }

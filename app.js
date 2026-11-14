@@ -3,7 +3,7 @@
 import { api, allaRader, rpc, glomCache, login, logout, inloggad, esc, fmt, tecken, enc } from './lib.js';
 import { lasZip } from './zip.js';
 
-const VERSION = '0.4.0';
+const VERSION = '0.4.1';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [

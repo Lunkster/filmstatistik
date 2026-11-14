@@ -6,12 +6,18 @@
   <meta name="theme-color" content="#141312">
   <meta name="robots" content="noindex">
   <title>Filmstatistik</title>
-  <link rel="icon" href="logo.svg?v=0.4.0" type="image/svg+xml">
-  <link rel="stylesheet" href="style.css?v=0.4.0">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="Film">
+  <link rel="icon" href="logo.svg?v=0.4.1" type="image/svg+xml">
+  <link rel="stylesheet" href="style.css?v=0.4.1">
 </head>
 <body>
   <header class="topbar">
-    <a href="#/" class="brand" aria-label="Filmstatistik" title="Filmstatistik"><img src="logo.svg?v=0.4.0" alt="" class="logo"></a>
+    <a href="#/" class="brand" aria-label="Filmstatistik" title="Filmstatistik"><img src="logo.svg?v=0.4.1" alt="" class="logo"></a>
     <nav class="tabs" aria-label="Huvudmeny" hidden>
       <a href="#/" data-route="" aria-label="Översikt" title="Översikt"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="12" width="4" height="8"/><rect x="10" y="4" width="4" height="16"/><rect x="16" y="9" width="4" height="11"/></svg><span class="txt">Översikt</span></a>
       <a href="#/personer" data-route="personer" aria-label="Personer" title="Personer"><svg class="ik" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/></svg><span class="txt">Personer</span></a>
@@ -28,12 +34,13 @@
   <main id="app" aria-live="polite"><p class="muted center">Laddar …</p></main>
 
   <footer class="foot">
-    <span id="version">v0.4.0</span> · data från Letterboxd, Filmtipset och <a href="https://www.themoviedb.org/" rel="noopener">TMDB</a>
+    <span id="version">v0.4.1</span> · data från Letterboxd, Filmtipset och <a href="https://www.themoviedb.org/" rel="noopener">TMDB</a>
     · <a href="#/logga-ut" id="loggaut" hidden>Logga ut</a>
     <div class="tmdb-not">This product uses the TMDB API but is not endorsed or certified by TMDB.</div>
   </footer>
 
   <div id="tips" class="tips" role="tooltip" hidden></div>
-  <script type="module" src="app.js?v=0.4.0"></script>
+  <script>if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});</script>
+  <script type="module" src="app.js?v=0.4.1"></script>
 </body>
 </html>
