@@ -2,8 +2,9 @@
 // Data: schemat film i Supabase (vyerna v_*, s_person). Se Obsidian: Film och serier - Datamodell.
 import { api, allaRader, rpc, glomCache, login, logout, inloggad, esc, fmt, tecken, enc } from './lib.js';
 import { lasZip } from './zip.js';
+import { renderNyheter } from './nyheter.js';
 
-const VERSION = '0.4.1';
+const VERSION = '0.4.2';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -427,7 +428,7 @@ async function importera() {
   });
 }
 
-const SIDOR = { '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera };
+const SIDOR = { '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: () => renderNyheter(app, VERSION) };
 let visarNr = 0;
 async function visa() {
   const route = (location.hash.replace(/^#\/?/, '').split('?')[0]) || '';

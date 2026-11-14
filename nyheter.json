@@ -1,0 +1,19 @@
+[
+ {
+  "datum": "2026-11-14",
+  "punkter": [
+   "**Som app:** lägg sidan på hemskärmen. iPhone: Safari → Dela → Lägg till på hemskärmen (v0.4.1)",
+   "**Importera:** ladda upp din Letterboxd-zip så uppdateras betyg, dagbok och etiketter (v0.4.0)"
+  ]
+ },
+ {
+  "datum": "2026-11-12",
+  "punkter": [
+   "**Tittat:** visningar per år och etiketter som plats, sällskap och format (v0.3.0)",
+   "**Ikonmeny:** menyn visas som ikoner i smala fönster (v0.2.1)",
+   "**Filmer utan dagbok:** lista med länkar till Letterboxd för det som saknar dagboksinlägg (v0.2.0)",
+   "**Länder:** klicka på ett land för att se filmerna (v0.1.1)",
+   "**Första versionen:** översikt, personer, genrer, bolag, länder och filmer för Henrik och Tuva (v0.1.0)"
+  ]
+ }
+]
