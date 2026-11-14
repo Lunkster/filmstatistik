@@ -4,7 +4,7 @@ import { api, allaRader, rpc, glomCache, login, logout, inloggad, esc, fmt, teck
 import { lasZip } from './zip.js';
 import { renderNyheter } from './nyheter.js';
 
-const VERSION = '0.4.5';
+const VERSION = '0.4.6';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -381,8 +381,8 @@ async function importera() {
     <h1>Importera</h1>
     <p class="muted">Ladda upp din export från Letterboxd som den är, som zip-fil. Betyg, dagbok och etiketter uppdateras. Filerna läses i webbläsaren och bara betyg och dagbok skickas vidare.</p>
     <div class="kort imp">
-      <div><a class="knapp prim" href="https://letterboxd.com/data/export/" target="_blank" rel="noopener">Hämta export från Letterboxd</a>
-        <p class="muted">Öppnar Letterboxd. Är du inloggad där börjar zip-filen laddas ner direkt. Välj sedan filen här nedanför.</p></div>
+      <div><a class="knapp prim" href="https://letterboxd.com/data/export/" target="_blank" rel="noopener noreferrer" referrerpolicy="no-referrer">Hämta export från Letterboxd</a>
+        <p class="muted">Öppnar Letterboxd. Är du inloggad där börjar zip-filen laddas ner direkt. Fungerar inte knappen: kopiera adressen och klistra in den i webbläsaren. Välj sedan filen här nedanför.</p><code>https://letterboxd.com/data/export/</code></div>
       <label>Vems export? <select id="imp-vem">${val.map((v) => `<option${v === vem ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
       <label>Fil <input type="file" id="imp-fil" accept=".zip,.csv" multiple></label>
       <div id="imp-info" class="muted"></div>
