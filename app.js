@@ -4,7 +4,7 @@ import { api, allaRader, rpc, glomCache, login, logout, inloggad, esc, fmt, teck
 import { lasZip } from './zip.js';
 import { renderNyheter } from './nyheter.js';
 
-const VERSION = '0.4.2';
+const VERSION = '0.4.3';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
