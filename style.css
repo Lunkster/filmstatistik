@@ -167,3 +167,13 @@ ol.topp li { margin-bottom: .2rem; }
   .tabs { order: 3; flex-basis: 100%; overflow-x: visible; }
   .tabs a { padding: .4rem .35rem; }
 }
+
+/* tips */
+.tips-kort { display: grid; grid-template-columns: 92px 1fr; gap: 1rem; margin-bottom: .75rem; }
+.tips-kort img, .tips-kort .lt-tom { width: 92px; border-radius: 6px; background: var(--yta-3); }
+.tips-info h2 { margin: 0 0 .25rem; }
+.tips-info p { margin: .3rem 0; }
+.tips-poang { font-variant-numeric: tabular-nums; font-size: .9rem; }
+.tips-knappar { margin-top: .5rem; }
+.tips-knappar button:not(.prim) { font-size: .85rem; padding: .3rem .6rem; }
+@media (max-width: 600px) { .tips-kort { grid-template-columns: 70px 1fr; gap: .75rem; } .tips-kort img, .tips-kort .lt-tom { width: 70px; } }

@@ -6,8 +6,9 @@ import { renderNyheter } from './nyheter.js';
 import { renderFilm } from './filmsida.js';
 import { renderOnskelista } from './onskelista.js';
 import { renderLaggTill, tagEmotDelning } from './laggtill.js';
+import { renderTips } from './tips.js';
 
-const VERSION = '0.9.0';
+const VERSION = '0.10.0';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -474,7 +475,7 @@ async function importera() {
   });
 }
 
-const SIDOR = { film: () => renderFilm(app, routeDelar()[1] ?? '', { stjarnor, vem: () => vem }), onskelista: () => renderOnskelista(app, { vem: () => vem, params, satt, visa }), 'lagg-till': () => renderLaggTill(app, { vem: () => vem, params }), '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: async () => { await importera(); document.getElementById('nytt')?.scrollIntoView(); } };
+const SIDOR = { film: () => renderFilm(app, routeDelar()[1] ?? '', { stjarnor, vem: () => vem }), onskelista: () => renderOnskelista(app, { vem: () => vem, params, satt, visa }), 'lagg-till': () => renderLaggTill(app, { vem: () => vem, params }), tips: () => renderTips(app, { vem: () => vem, params, satt, visa }), '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: async () => { await importera(); document.getElementById('nytt')?.scrollIntoView(); } };
 let visarNr = 0;
 const routeDelar = () => { const d = (location.hash.replace(/^#\/?/, '').split('?')[0] || '').split('/'); d[0] = d[0] || ''; return d; };
 async function visa() {
