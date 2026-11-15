@@ -2,6 +2,7 @@
  {
   "datum": "2026-11-15",
   "punkter": [
+   "**Alla:** välj Alla i väljaren uppe till höger för gemensam statistik – filmens betyg är snittet av er som sett den, och visningar ni gjort tillsammans räknas en gång. **Översikt:** klicka på antalet filmer i topplistorna för att se filmerna. **Meny:** Nytt i appen ligger nu under Importera, och menyn ryms på telefonen (v0.9.0)",
    "**Var filmen går att se:** filmsidan visar vilka tjänster i Sverige som har filmen att strömma (och var den kan hyras eller köpas). Önskelistan har en kolumn med SVT Play, Cineasterna, Netflix, Disney+ och Prime och ett filter Går att strömma. Filmer på önskelistorna har nu också egna filmsidor (v0.8.0)",
    "**Lägg till utifrån:** under Önskelista → Lägg till kan ni klistra in en länk från Letterboxd, IMDb eller TMDB eller söka på titel och lägga filmen på er gemensamma önskelista. På Android finns Film i delningsmenyn när appen är installerad; på iPhone görs det med en genväg och på datorn med ett bokmärke – instruktioner på sidan (v0.7.0)",
    "**Önskelista:** ny flik med era Letterboxd-önskelistor sida vid sida – filmer som ni båda vill se står först – och en kolumn där ni bockar i vad som är gemensamt önskemål. Det går också att bocka i på filmsidan. JustWatch-knappen på filmsidan fungerar nu (v0.6.0)",

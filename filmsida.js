@@ -20,7 +20,7 @@ export async function renderFilm(app, id, { stjarnor, vem }) {
     api(`film?id=eq.${id}&select=*`),
     api(`v_betyg?film_id=eq.${id}&select=anvandare,anvandare_id,betyg,datum&order=anvandare_id`),
     forsok(api(`v_film_sedd?film_id=eq.${id}&select=anvandare,sedd,ganger`)),
-    forsok(api(`v_loggning?film_id=eq.${id}&select=anvandare,datum,betyg,omtitt,taggar&order=datum.desc`)),
+    forsok(api(`v_loggning?film_id=eq.${id}&anvandare=neq.Alla&select=anvandare,datum,betyg,omtitt,taggar&order=datum.desc`)),
     api(`betyg?film_id=eq.${id}&kalla=eq.letterboxd&aktiv=is.true&letterboxd_uri=not.is.null&select=letterboxd_uri&limit=1`),
     api(`film_genre?film_id=eq.${id}&select=genre(namn)`),
     api(`film_bolag?film_id=eq.${id}&select=bolag(tmdb_id,namn,land)`),
@@ -44,9 +44,11 @@ export async function renderFilm(app, id, { stjarnor, vem }) {
 
   // allas betyg och visningar per person
   const sedda = new Map(sedd.map((s) => [s.anvandare, s]));
-  const betygHtml = betyg.length ? `<table class="smal"><thead><tr><th>Vem</th><th>Betyg</th><th>Betygsatt</th><th>Senast sedd</th><th class="num">Gånger</th></tr></thead><tbody>${betyg.map((b) => {
+  const per = betyg.filter((b) => b.anvandare_id !== 0), snitt = betyg.find((b) => b.anvandare_id === 0);
+  if (per.length > 1 && snitt) per.push({ ...snitt, anvandare: 'Snitt', datum: null });
+  const betygHtml = per.length ? `<table class="smal"><thead><tr><th>Vem</th><th>Betyg</th><th>Betygsatt</th><th>Senast sedd</th><th class="num">Gånger</th></tr></thead><tbody>${per.map((b) => {
     const s = sedda.get(b.anvandare);
-    return `<tr><td>${esc(b.anvandare)}</td><td>${stjarnor(b.betyg == null ? null : Number(b.betyg))}</td><td>${b.datum ?? '–'}</td><td>${s?.sedd ?? '–'}</td><td class="num">${s?.ganger ? fmt(s.ganger) : '–'}</td></tr>`;
+    return `<tr><td>${esc(b.anvandare)}</td><td>${stjarnor(b.betyg == null ? null : Number(b.betyg))}</td><td>${b.datum ?? (b.anvandare === 'Snitt' ? '' : '–')}</td><td>${b.anvandare === 'Snitt' ? '' : s?.sedd ?? '–'}</td><td class="num">${b.anvandare === 'Snitt' ? '' : s?.ganger ? fmt(s.ganger) : '–'}</td></tr>`;
   }).join('')}</tbody></table>` : '<p class="muted">Ingen av oss har betygsatt den.</p>';
 
   const genreNamn = genrer.map((g) => g.genre?.namn).filter(Boolean);

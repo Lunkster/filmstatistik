@@ -1,7 +1,7 @@
 // Service worker: gör att appen kan läggas på hemskärmen. Hämtar alltid från nätet först
 // (så att nya versioner syns direkt) och använder sparade filer bara när nätet saknas.
 // Data från Supabase cachas inte.
-const CACHE = 'film-v5';
+const CACHE = 'film-v6';
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(
   caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim()),

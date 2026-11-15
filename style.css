@@ -150,3 +150,20 @@ pre { white-space: pre-wrap; word-break: break-all; background: var(--yta); padd
 .liten { font-size: .8rem; }
 td.loggor { white-space: nowrap; }
 td.loggor img { width: 22px; height: 22px; border-radius: 4px; margin-right: 3px; vertical-align: middle; }
+
+/* topplistor som går att expandera */
+button.lank { background: none; border: 0; padding: 0; color: var(--guld); text-decoration: underline dotted; cursor: pointer; font-size: inherit; }
+ol.topp li { margin-bottom: .2rem; }
+.topp-filmer { margin: .35rem 0 .6rem; font-size: .9rem; }
+.topp-filmer .lista-filmer { columns: 1; }
+.nytt-under { margin-top: 2rem; border-top: 1px solid var(--linje); padding-top: .5rem; }
+.nytt-under h1 { font-size: 1.25rem; }
+
+/* telefon: logga och väljare på första raden, menyn på egen rad */
+@media (max-width: 700px) {
+  .topbar { justify-content: space-between; }
+  .brand { order: 1; }
+  .vem { order: 2; }
+  .tabs { order: 3; flex-basis: 100%; overflow-x: visible; }
+  .tabs a { padding: .4rem .35rem; }
+}

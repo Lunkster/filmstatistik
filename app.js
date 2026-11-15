@@ -7,7 +7,7 @@ import { renderFilm } from './filmsida.js';
 import { renderOnskelista } from './onskelista.js';
 import { renderLaggTill, tagEmotDelning } from './laggtill.js';
 
-const VERSION = '0.8.0';
+const VERSION = '0.9.0';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -24,11 +24,16 @@ const vemSel = document.getElementById('vem');
 vemSel.addEventListener('change', () => { vem = vemSel.value; try { localStorage.setItem('filmstatistik-vem', vem); } catch { /* */ } visa(); });
 async function laddaAnvandare() {
   const a = await api('anvandare?select=namn&order=id');
-  vemSel.innerHTML = a.map((x) => `<option${x.namn === vem ? ' selected' : ''}>${esc(x.namn)}</option>`).join('');
-  if (!a.some((x) => x.namn === vem)) { vem = a[0]?.namn; vemSel.value = vem; }
+  const namn = [...a.map((x) => x.namn), ...(a.length > 1 ? [ALLA] : [])];
+  vemSel.innerHTML = namn.map((n) => `<option${n === vem ? ' selected' : ''}>${esc(n)}</option>`).join('');
+  anvandarNamn = a.map((x) => x.namn);
+  if (!namn.includes(vem)) { vem = namn[0]; vemSel.value = vem; }
   document.querySelector('.vem').hidden = a.length < 2;
 }
 const V = () => `anvandare=eq.${enc(vem)}`;
+const ALLA = 'Alla';
+let anvandarNamn = [];
+const vems = () => (vem === ALLA ? 'Era gemensamma betyg (snittet av de av er som sett filmen)' : `${esc(vem)}s betyg`);
 
 // ---------- hjälp ----------
 function stjarnor(b) {
@@ -141,16 +146,16 @@ async function oversikt() {
   ]);
   const n = filmer.length;
   const medel = n ? filmer.reduce((a, f) => a + Number(f.betyg), 0) / n : null;
-  const fordelning = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((b) => ({ etikett: fmt(b, b % 1 ? 1 : 0), varde: filmer.filter((f) => Number(f.betyg) === b).length }))
+  const fordelning = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5].map((b) => ({ etikett: fmt(b, b % 1 ? 1 : 0), varde: filmer.filter((f) => Math.round(Number(f.betyg) * 2) / 2 === b).length }))
     .filter((d, i, a) => d.varde > 0 || (i > 0 && i < a.length - 1));
   const dec = new Map();
   filmer.forEach((f) => { if (!f.ar) return; const k = Math.floor(f.ar / 10) * 10; const d = dec.get(k) ?? { n: 0, s: 0, t: 0, tn: 0 }; d.n++; d.s += Number(f.betyg); if (f.tmdb_betyg_5 != null) { d.t += Number(f.tmdb_betyg_5); d.tn++; } dec.set(k, d); });
   const decData = [...dec.entries()].sort((a, b) => a[0] - b[0]).map(([k, d]) => ({ etikett: `${k}`, varde: d.n,
     tips: `<b>${k}-talet</b><br>${fmt(d.n)} filmer<br>Mitt snitt ${fmt(d.s / d.n, 2)}<br>TMDB-snitt ${d.tn ? fmt(d.t / d.tn, 2) : '–'}` }));
   const forsta = filmer.map((f) => f.datum).filter(Boolean).sort()[0];
-  const topp = (rader, falt) => `<ol>${rader.map((r) => `<li><a href="https://www.themoviedb.org/person/${r.person_tmdb_id}" target="_blank" rel="noopener">${esc(r.namn)}</a> <span class="muted">${fmt(r.antal_filmer)} filmer, snitt ${fmt(r[falt], 2)}</span></li>`).join('')}</ol>`;
+  const topp = (rader, falt, roll) => `<ol class="topp">${rader.map((r) => `<li><a href="https://www.themoviedb.org/person/${r.person_tmdb_id}" target="_blank" rel="noopener">${esc(r.namn)}</a> <button class="lank" data-pid="${r.person_tmdb_id}" data-roll="${esc(roll)}" aria-expanded="false">${fmt(r.antal_filmer)} filmer</button> <span class="muted">snitt ${fmt(r[falt], 2)}</span></li>`).join('')}</ol>`;
   app.innerHTML = `
-    <h1>Översikt</h1><p class="muted">${esc(vem)}s betyg. Betygen kommer från Letterboxd; datumen från Filmtipset.</p>
+    <h1>Översikt</h1><p class="muted">${vems()}. Betygen kommer från Letterboxd; datumen från Filmtipset.</p>
     <div class="tiles">
       <div class="tile"><div class="v">${fmt(n)}</div><div class="k">filmer och serier</div></div>
       <div class="tile"><div class="v">${fmt(medel, 2)}</div><div class="k">snittbetyg</div></div>
@@ -163,11 +168,27 @@ async function oversikt() {
       <div class="kort"><h2>Filmer per decennium</h2>${stapelDiagram(decData)}</div>
     </div>
     <div class="rutnat" style="margin-top:1rem">
-      <div class="kort"><h2>Regissörer jag gillar mest</h2>${topp(regi, 'snittbetyg')}<a href="#/personer?roll=regi">Alla regissörer →</a></div>
-      <div class="kort"><h2>Skådespelare jag gillar mest</h2>${topp(skad, 'viktat_snitt')}<a href="#/personer?roll=sk%C3%A5despelare">Alla skådespelare →</a></div>
+      <div class="kort"><h2>Regissörer ${vem === ALLA ? 'vi' : 'jag'} gillar mest</h2>${topp(regi, 'snittbetyg', 'regi')}<a href="#/personer?roll=regi">Alla regissörer →</a></div>
+      <div class="kort"><h2>Skådespelare ${vem === ALLA ? 'vi' : 'jag'} gillar mest</h2>${topp(skad, 'viktat_snitt', 'skådespelare')}<a href="#/personer?roll=sk%C3%A5despelare">Alla skådespelare →</a></div>
     </div>
     <p class="muted">Topplistorna använder <b>justerat betyg</b>: som om man också sett tre filmer med sitt eget snittbetyg${snitt.length ? '' : ''}, så att en enda femma inte hamnar överst. Skådespelare viktas efter rollens storlek (1 för de tre första i rollistan, 0,5 för plats 4–10, 0,2 därefter).</p>`;
   kopplaTips(app);
+  app.querySelectorAll('ol.topp button[data-pid]').forEach((b) => b.addEventListener('click', async () => {
+    const li = b.closest('li'), oppen = li.querySelector('.topp-filmer');
+    if (oppen) { oppen.remove(); b.setAttribute('aria-expanded', 'false'); return; }
+    const d = document.createElement('div'); d.className = 'topp-filmer'; d.innerHTML = '<span class="muted">Laddar …</span>';
+    li.append(d); b.setAttribute('aria-expanded', 'true');
+    try { d.innerHTML = await personFilmer(b.dataset.pid, b.dataset.roll); } catch (err) { d.innerHTML = `<span class="fel">${esc(err.message)}</span>`; }
+  }));
+}
+
+// Filmerna en person är med i (i en viss roll), med betyg för den valda användaren
+async function personFilmer(pid, roll) {
+  const fp = await api(`film_person?person_id=eq.${pid}&roll=eq.${enc(roll)}&select=film_id,karaktar,ordning`);
+  if (!fp.length) return '<span class="muted">Inga filmer.</span>';
+  const f = await api(`v_film?${V()}&film_id=in.(${fp.map((x) => x.film_id).join(',')})&select=film_id,titel,ar,betyg,typ,tmdb_id&order=betyg.desc,ar.asc`);
+  const kar = new Map(fp.map((x) => [x.film_id, x.karaktar]));
+  return filmlista(f.map((x) => ({ ...x, karaktar: kar.get(x.film_id) })));
 }
 
 async function personer() {
@@ -192,13 +213,7 @@ async function personer() {
       { nyckel: skad ? 'viktat_snitt' : 'snittbetyg', rubrik: skad ? 'Viktat snitt' : 'Snitt', num: true, html: (r) => fmt(skad ? r.viktat_snitt : r.snittbetyg, 2) },
       { nyckel: 'justerat_betyg', rubrik: 'Justerat', num: true, html: (r) => fmt(r.justerat_betyg, 2) },
       { nyckel: 'diff_mot_ditt_snitt', rubrik: 'Mot mitt snitt', html: (r) => diffStapel(r.diff_mot_ditt_snitt) },
-    ], { klick: async (r) => {
-      const fp = await api(`film_person?person_id=eq.${r.person_tmdb_id}&roll=eq.${enc(roll)}&select=film_id,karaktar,ordning`);
-      if (!fp.length) return '<span class="muted">Inga filmer.</span>';
-      const f = await api(`v_film?${V()}&film_id=in.(${fp.map((x) => x.film_id).join(',')})&select=film_id,titel,ar,betyg,typ,tmdb_id&order=betyg.desc,ar.asc`);
-      const kar = new Map(fp.map((x) => [x.film_id, x.karaktar]));
-      return filmlista(f.map((x) => ({ ...x, karaktar: kar.get(x.film_id) })));
-    } }) : '<p class="muted">Inga personer med de inställningarna.</p>'}
+    ], { klick: (r) => personFilmer(r.person_tmdb_id, roll) }) : '<p class="muted">Inga personer med de inställningarna.</p>'}
     <p class="muted">Klicka på en rad för att se filmerna. Visar högst 100.</p>`;
   const ga = () => visa();
   document.getElementById('f-roll').onchange = (e) => { satt('roll', e.target.value); satt('min', e.target.value === 'skådespelare' ? 3 : 3); ga(); };
@@ -347,7 +362,7 @@ async function tittat() {
     api(`v_tittat_manad?${V()}&select=manad,antal,omtittar&order=manad`),
     api(`v_tagg?${V()}&select=tagg,typ,visas_som,antal,snittbetyg&order=antal.desc`),
   ]);
-  if (!manader.length) { app.innerHTML = `<h1>Tittat</h1><p class="muted">Inga loggningar med visningsdatum för ${esc(vem)} ännu.</p>`; return; }
+  if (!manader.length) { app.innerHTML = `<h1>Tittat</h1><p class="muted">Inga loggningar med visningsdatum för ${vem === ALLA ? 'er' : esc(vem)} ännu.</p>`; return; }
   const tot = manader.reduce((s, m) => s + m.antal, 0), om = manader.reduce((s, m) => s + m.omtittar, 0);
   const perAr = new Map();
   manader.forEach((m) => { const ar = m.manad.slice(0, 4); perAr.set(ar, (perAr.get(ar) ?? 0) + m.antal); });
@@ -368,7 +383,7 @@ async function tittat() {
     ], { sort: 'antal', klick: (r) => lista(r.tagg)() });
   }).join('');
   app.innerHTML = `
-    <h1>Tittat</h1><p class="muted">${esc(vem)}s loggade visningar i Letterboxd, med datum och etiketter. Klicka på en rad för att se filmerna.</p>
+    <h1>Tittat</h1><p class="muted">${vem === ALLA ? 'Era loggade visningar (sett tillsammans samma dag räknas en gång)' : `${esc(vem)}s loggade visningar`} i Letterboxd, med datum och etiketter. Klicka på en rad för att se filmerna.</p>
     <div class="tiles">
       <div class="tile"><div class="v">${fmt(tot)}</div><div class="k">loggade visningar</div></div>
       <div class="tile"><div class="v">${fmt(om)}</div><div class="k">omtittar</div></div>
@@ -381,7 +396,7 @@ async function tittat() {
 
 // ---------- importera Letterboxd-export ----------
 async function importera() {
-  const val = [...vemSel.options].map((o) => o.value);
+  const val = anvandarNamn;
   app.innerHTML = `
     <h1>Importera</h1>
     <p class="muted">Ladda upp din export från Letterboxd som den är, som zip-fil. Betyg, dagbok, etiketter och önskelista uppdateras. Filerna läses i webbläsaren och bara betyg, dagbok och önskelista skickas vidare.</p>
@@ -392,7 +407,9 @@ async function importera() {
       <div id="imp-info" class="muted"></div>
       <div><button class="prim" id="imp-knapp" disabled>Importera</button></div>
       <div id="imp-res" aria-live="polite"></div>
-    </div>`;
+    </div>
+    <div id="nytt" class="nytt-under"></div>`;
+  renderNyheter(document.getElementById('nytt'), VERSION).catch(() => {});
   const EXP = 'https://letterboxd.com/data/export/';
   const mobil = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) || (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1); // iPadOS ger sig ut för att vara en Mac
   document.getElementById('imp-exp').innerHTML = `
@@ -457,7 +474,7 @@ async function importera() {
   });
 }
 
-const SIDOR = { film: () => renderFilm(app, routeDelar()[1] ?? '', { stjarnor, vem: () => vem }), onskelista: () => renderOnskelista(app, { vem: () => vem, params, satt, visa }), 'lagg-till': () => renderLaggTill(app, { vem: () => vem, params }), '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: () => renderNyheter(app, VERSION) };
+const SIDOR = { film: () => renderFilm(app, routeDelar()[1] ?? '', { stjarnor, vem: () => vem }), onskelista: () => renderOnskelista(app, { vem: () => vem, params, satt, visa }), 'lagg-till': () => renderLaggTill(app, { vem: () => vem, params }), '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: async () => { await importera(); document.getElementById('nytt')?.scrollIntoView(); } };
 let visarNr = 0;
 const routeDelar = () => { const d = (location.hash.replace(/^#\/?/, '').split('?')[0] || '').split('/'); d[0] = d[0] || ''; return d; };
 async function visa() {
@@ -465,7 +482,7 @@ async function visa() {
   if (route === 'logga-ut') { logout(); history.replaceState(null, '', '#/'); }
   if (!inloggad()) return inloggning();
   document.querySelector('.tabs').hidden = false; document.getElementById('loggaut').hidden = false;
-  document.querySelectorAll('.tabs a').forEach((a) => a.classList.toggle('aktiv', a.dataset.route === (route === 'lagg-till' ? 'onskelista' : route)));
+  document.querySelectorAll('.tabs a').forEach((a) => a.classList.toggle('aktiv', a.dataset.route === ({ 'lagg-till': 'onskelista', nyheter: 'importera', film: '' }[route] ?? route)));
   const nr = ++visarNr;
   try {
     if (!vemSel.options.length) await laddaAnvandare();
