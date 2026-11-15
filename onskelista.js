@@ -6,7 +6,7 @@ export async function renderOnskelista(app, { vem, params, satt, visa }) {
   const [anv, rader, gem] = await Promise.all([
     api('anvandare?select=id,namn&order=id'),
     api('v_onskelista?select=anvandare_id,titel,ar,tillagd,letterboxd_uri,film_id,tmdb_id&order=titel'),
-    api('gemensam?aktiv=is.true&select=id,letterboxd_uri,tmdb_id,typ,titel,ar,tillagd,tillagd_av&order=tillagd.desc', { fresh: true }),
+    api('v_gemensam?aktiv=is.true&select=id,letterboxd_uri,tmdb_id,typ,titel,ar,tillagd,tillagd_av,film_id&order=tillagd.desc', { fresh: true }),
   ]);
   const visaFilter = params().get('visa') || 'alla';
   // en rad per film (Letterboxd-adress)
@@ -20,9 +20,9 @@ export async function renderOnskelista(app, { vem, params, satt, visa }) {
   // gemensamma som inte står på någon watchlist (tillagda på annat sätt)
   gem.forEach((g) => {
     if ([...filmer.values()].some((f) => gemFor(f) === g)) return;
-    filmer.set(g.letterboxd_uri ?? `tmdb:${g.typ}:${g.tmdb_id}`, { uri: g.letterboxd_uri, titel: g.titel, ar: g.ar, tmdb_id: g.tmdb_id, typ: g.typ, vem: {} });
+    filmer.set(g.letterboxd_uri ?? `tmdb:${g.typ}:${g.tmdb_id}`, { uri: g.letterboxd_uri, titel: g.titel, ar: g.ar, tmdb_id: g.tmdb_id, typ: g.typ, film_id: g.film_id, vem: {} });
   });
-  const lista = [...filmer.values()].map((f) => { const g = gemFor(f); return { ...f, antal: Object.keys(f.vem).length, gem: !!g, gemInfo: g }; });
+  const lista = [...filmer.values()].map((f) => { const g = gemFor(f); return { ...f, film_id: f.film_id ?? g?.film_id, antal: Object.keys(f.vem).length, gem: !!g, gemInfo: g }; });
   lista.sort((a, b) => b.antal - a.antal || Number(b.gem) - Number(a.gem) || String(a.titel).localeCompare(String(b.titel), 'sv'));
   const synliga = lista.filter((f) => visaFilter === 'alla' || (visaFilter === 'bada' ? f.antal >= anv.length && anv.length > 1 : f.gem));
   const bada = lista.filter((f) => f.antal >= anv.length && anv.length > 1).length;
@@ -47,7 +47,7 @@ export async function renderOnskelista(app, { vem, params, satt, visa }) {
       <button data-v="alla" class="${visaFilter === 'alla' ? 'aktiv' : ''}">Alla</button>
       ${anv.length > 1 ? `<button data-v="bada" class="${visaFilter === 'bada' ? 'aktiv' : ''}">På allas listor</button>` : ''}
       <button data-v="gemensam" class="${visaFilter === 'gemensam' ? 'aktiv' : ''}">Gemensamma</button>
-    </span><span class="muted">${fmt(synliga.length)} filmer</span></div>
+    </span><span class="muted">${fmt(synliga.length)} filmer</span><a class="knapp prim" href="#/lagg-till">+ Lägg till utifrån</a></div>
     ${synliga.length ? `<div class="tabell-wrap"><table class="onske"><thead><tr><th>Film</th><th class="num">År</th>${anv.map((a) => `<th class="mitt">${esc(a.namn)}</th>`).join('')}<th class="mitt">Gemensam</th></tr></thead>
       <tbody>${synliga.map((f, i) => `<tr${f.antal >= anv.length && anv.length > 1 ? ' class="bada"' : ''}><td>${titelHtml(f)}</td><td class="num">${f.ar ?? ''}</td>${anv.map((a) => `<td class="mitt">${bock(f.vem[a.id])}</td>`).join('')}
         <td class="mitt"><input type="checkbox" data-i="${i}"${f.gem ? ' checked' : ''} aria-label="Gemensam: ${esc(f.titel)}" title="${f.gemInfo ? `Tillagd ${esc(String(f.gemInfo.tillagd).slice(0, 10))}${f.gemInfo.tillagd_av ? ` av ${esc(f.gemInfo.tillagd_av)}` : ''}` : 'Markera som gemensamt önskemål'}"></td></tr>`).join('')}</tbody></table></div>`

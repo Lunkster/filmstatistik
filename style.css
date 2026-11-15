@@ -133,3 +133,10 @@ th.mitt, td.mitt { text-align: center; }
 table.onske tr.bada td:first-child { border-left: 3px solid var(--guld); }
 table.onske input[type=checkbox], .gem-val input { width: 1.2rem; height: 1.2rem; accent-color: var(--guld); vertical-align: middle; }
 .gem-val { cursor: pointer; }
+
+/* lägg till */
+.lt-kort { display: grid; grid-template-columns: 92px 1fr; gap: 1rem; margin-bottom: .75rem; }
+.lt-kort img, .lt-tom { width: 92px; border-radius: 6px; background: var(--yta-3); min-height: 138px; }
+.lt-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
+pre { white-space: pre-wrap; word-break: break-all; background: var(--yta); padding: .5rem .75rem; border-radius: 6px; font-size: .85rem; }
+.filter .knapp { margin-left: auto; }
