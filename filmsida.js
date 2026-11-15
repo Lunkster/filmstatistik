@@ -1,5 +1,5 @@
 // Filmsida: metadata från TMDB (sparad i film.*), allas betyg, visningar och önskelistor, länkar ut.
-import { api, rpc, glomCache, esc, fmt, enc } from './lib.js';
+import { api, rpc, glomCache, esc, fmt, enc, arVar, strommas, LOGO } from './lib.js';
 
 const BILD = 'https://image.tmdb.org/t/p/w342';
 const HISTORISKA = { SU: 'Sovjetunionen', YU: 'Jugoslavien', AN: 'Nederländska Antillerna', CS: 'Tjeckoslovakien', DD: 'Östtyskland', XC: 'Tjeckoslovakien', XG: 'Östtyskland' };
@@ -76,6 +76,7 @@ export async function renderFilm(app, id, { stjarnor, vem }) {
         ${serie ? '<p class="muted">Serie</p>' : ''}
         ${genreNamn.length ? `<p class="taggar">${genreNamn.map((g) => `<a class="tagg" href="#/genrer">${esc(g)}</a>`).join('')}</p>` : ''}
         ${f.beskrivning ? `<p>${esc(f.beskrivning)}</p>` : ''}
+        <div id="tjanster" class="tjanster"><span class="muted">Kollar var filmen går att se …</span></div>
         <div class="knappar-rad">${lankar.map(([t, u]) => `<a class="knapp" href="${esc(u)}" target="_blank" rel="noopener noreferrer">${t}</a>`).join('')}</div>
       </div>
     </div>
@@ -91,6 +92,7 @@ export async function renderFilm(app, id, { stjarnor, vem }) {
     <h2>Rollista</h2><div class="kort">${castHtml}</div>
     ${bolag.length ? `<h2>${serie ? 'Bolag och kanaler' : 'Produktionsbolag'}</h2><div class="kort"><ul class="lista-filmer">${bolag.filter((b) => b.bolag).map(({ bolag: b }) => `<li><a href="#/bolag?min=1&sok=${enc(b.namn)}">${esc(b.namn)}</a>${b.land ? ` <span class="muted">${esc(landNamn(b.land))}</span>` : ''}</li>`).join('')}</ul></div>` : ''}
     ${ord.length ? `<h2>Nyckelord</h2><p class="taggar">${ord.map((o) => o.nyckelord?.namn).filter(Boolean).map((n) => `<span class="tagg">${esc(n)}</span>`).join('')}</p>` : ''}`;
+  visaTjanster(app.querySelector('#tjanster'), id);
   const gemCb = app.querySelector('#gem');
   gemCb.addEventListener('change', async () => {
     gemCb.disabled = true;
@@ -101,4 +103,19 @@ export async function renderFilm(app, id, { stjarnor, vem }) {
     gemCb.disabled = false;
   });
   app.querySelector('.tillbaka').addEventListener('click', (e) => { if (history.length > 1) { e.preventDefault(); history.back(); } });
+}
+
+// Var filmen går att se i Sverige – hämtas efter att sidan ritats (kan ta någon sekund första gången)
+async function visaTjanster(el, id) {
+  try {
+    const t = await rpc('tjanster', { _film_id: Number(id) });
+    if (!el.isConnected) return;
+    if (!t) { el.innerHTML = '<span class="muted">Kunde inte hämta var filmen går att se.</span>'; return; }
+    const strom = strommas(t.data);
+    const hyr = [...new Set((t.data ?? []).filter((x) => x.typ === 'rent' || x.typ === 'buy').map((x) => x.namn))];
+    const logo = (x) => `<span class="tjanst${arVar(x.namn) ? ' var' : ''}" title="${esc(x.namn)}${x.typ === 'free' ? ' (gratis)' : x.typ === 'ads' ? ' (med reklam)' : ''}">${x.logo ? `<img src="${LOGO}${esc(x.logo)}" alt="">` : ''}${esc(x.namn)}${x.typ === 'free' ? ' <span class="muted">gratis</span>' : ''}</span>`;
+    el.innerHTML = `${strom.length ? `<div class="tjanst-rad"><span class="muted">Strömma:</span> ${strom.map(logo).join('')}</div>` : '<div class="muted">Finns inte att strömma i Sverige just nu.</div>'}
+      ${hyr.length ? `<div class="muted liten">Hyra eller köpa: ${hyr.map(esc).join(', ')}</div>` : ''}
+      <div class="muted liten">${t.lank ? `<a href="${esc(t.lank)}" target="_blank" rel="noopener">Data från JustWatch</a>` : 'Data från JustWatch'} via TMDB, ${String(t.hamtad).slice(0, 10)}</div>`;
+  } catch (e) { if (el.isConnected) el.innerHTML = `<span class="fel">${esc(e.message)}</span>`; }
 }

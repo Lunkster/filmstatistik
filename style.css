@@ -140,3 +140,13 @@ table.onske input[type=checkbox], .gem-val input { width: 1.2rem; height: 1.2rem
 .lt-text { display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; }
 pre { white-space: pre-wrap; word-break: break-all; background: var(--yta); padding: .5rem .75rem; border-radius: 6px; font-size: .85rem; }
 .filter .knapp { margin-left: auto; }
+
+/* strömningstjänster */
+.tjanster { margin: .25rem 0 .75rem; display: grid; gap: .3rem; }
+.tjanst-rad { display: flex; flex-wrap: wrap; gap: .35rem; align-items: center; }
+.tjanst { display: inline-flex; align-items: center; gap: .3rem; background: var(--yta-3); border-radius: 999px; padding: .15rem .55rem .15rem .2rem; font-size: .85rem; }
+.tjanst img { width: 20px; height: 20px; border-radius: 4px; }
+.tjanst.var { outline: 1px solid var(--guld); }
+.liten { font-size: .8rem; }
+td.loggor { white-space: nowrap; }
+td.loggor img { width: 22px; height: 22px; border-radius: 4px; margin-right: 3px; vertical-align: middle; }

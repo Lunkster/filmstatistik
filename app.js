@@ -7,7 +7,7 @@ import { renderFilm } from './filmsida.js';
 import { renderOnskelista } from './onskelista.js';
 import { renderLaggTill, tagEmotDelning } from './laggtill.js';
 
-const VERSION = '0.7.0';
+const VERSION = '0.8.0';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [

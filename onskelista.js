@@ -1,11 +1,12 @@
 // Önskelista: allas Letterboxd-watchlists sida vid sida och en gemensam lista som bockas i här.
 // Inget sker automatiskt – markeringen "gemensam" görs för hand (tabellen film.gemensam).
-import { api, rpc, glomCache, esc, fmt } from './lib.js';
+import { api, rpc, glomCache, esc, fmt, arVar, strommas, LOGO, VARA_TJANSTER } from './lib.js';
 
 export async function renderOnskelista(app, { vem, params, satt, visa }) {
-  const [anv, rader, gem] = await Promise.all([
+  const [anv, rader, tj, gem] = await Promise.all([
     api('anvandare?select=id,namn&order=id'),
     api('v_onskelista?select=anvandare_id,titel,ar,tillagd,letterboxd_uri,film_id,tmdb_id&order=titel'),
+    api('film_tjanst?select=film_id,data&order=film_id&limit=5000'),
     api('v_gemensam?aktiv=is.true&select=id,letterboxd_uri,tmdb_id,typ,titel,ar,tillagd,tillagd_av,film_id&order=tillagd.desc', { fresh: true }),
   ]);
   const visaFilter = params().get('visa') || 'alla';
@@ -24,7 +25,9 @@ export async function renderOnskelista(app, { vem, params, satt, visa }) {
   });
   const lista = [...filmer.values()].map((f) => { const g = gemFor(f); return { ...f, film_id: f.film_id ?? g?.film_id, antal: Object.keys(f.vem).length, gem: !!g, gemInfo: g }; });
   lista.sort((a, b) => b.antal - a.antal || Number(b.gem) - Number(a.gem) || String(a.titel).localeCompare(String(b.titel), 'sv'));
-  const synliga = lista.filter((f) => visaFilter === 'alla' || (visaFilter === 'bada' ? f.antal >= anv.length && anv.length > 1 : f.gem));
+  const tjMap = new Map(tj.map((t) => [t.film_id, strommas(t.data)]));
+  lista.forEach((f) => { f.strom = tjMap.get(f.film_id) ?? null; f.hosOss = (f.strom ?? []).some((x) => arVar(x.namn)); });
+  const synliga = lista.filter((f) => visaFilter === 'alla' || (visaFilter === 'bada' ? f.antal >= anv.length && anv.length > 1 : visaFilter === 'strom' ? f.hosOss : f.gem));
   const bada = lista.filter((f) => f.antal >= anv.length && anv.length > 1).length;
 
   const titelHtml = (f) => {
@@ -47,12 +50,14 @@ export async function renderOnskelista(app, { vem, params, satt, visa }) {
       <button data-v="alla" class="${visaFilter === 'alla' ? 'aktiv' : ''}">Alla</button>
       ${anv.length > 1 ? `<button data-v="bada" class="${visaFilter === 'bada' ? 'aktiv' : ''}">På allas listor</button>` : ''}
       <button data-v="gemensam" class="${visaFilter === 'gemensam' ? 'aktiv' : ''}">Gemensamma</button>
+      <button data-v="strom" class="${visaFilter === 'strom' ? 'aktiv' : ''}" title="${esc(VARA_TJANSTER.join(', '))}">Går att strömma</button>
     </span><span class="muted">${fmt(synliga.length)} filmer</span><a class="knapp prim" href="#/lagg-till">+ Lägg till utifrån</a></div>
-    ${synliga.length ? `<div class="tabell-wrap"><table class="onske"><thead><tr><th>Film</th><th class="num">År</th>${anv.map((a) => `<th class="mitt">${esc(a.namn)}</th>`).join('')}<th class="mitt">Gemensam</th></tr></thead>
+    ${synliga.length ? `<div class="tabell-wrap"><table class="onske"><thead><tr><th>Film</th><th class="num">År</th>${anv.map((a) => `<th class="mitt">${esc(a.namn)}</th>`).join('')}<th class="mitt">Gemensam</th><th>Strömma</th></tr></thead>
       <tbody>${synliga.map((f, i) => `<tr${f.antal >= anv.length && anv.length > 1 ? ' class="bada"' : ''}><td>${titelHtml(f)}</td><td class="num">${f.ar ?? ''}</td>${anv.map((a) => `<td class="mitt">${bock(f.vem[a.id])}</td>`).join('')}
-        <td class="mitt"><input type="checkbox" data-i="${i}"${f.gem ? ' checked' : ''} aria-label="Gemensam: ${esc(f.titel)}" title="${f.gemInfo ? `Tillagd ${esc(String(f.gemInfo.tillagd).slice(0, 10))}${f.gemInfo.tillagd_av ? ` av ${esc(f.gemInfo.tillagd_av)}` : ''}` : 'Markera som gemensamt önskemål'}"></td></tr>`).join('')}</tbody></table></div>`
+        <td class="mitt"><input type="checkbox" data-i="${i}"${f.gem ? ' checked' : ''} aria-label="Gemensam: ${esc(f.titel)}" title="${f.gemInfo ? `Tillagd ${esc(String(f.gemInfo.tillagd).slice(0, 10))}${f.gemInfo.tillagd_av ? ` av ${esc(f.gemInfo.tillagd_av)}` : ''}` : 'Markera som gemensamt önskemål'}"></td>
+        <td class="loggor">${f.strom == null ? '<span class="muted">…</span>' : f.strom.filter((x) => arVar(x.namn)).map((x) => `<img src="${LOGO}${esc(x.logo)}" alt="${esc(x.namn)}" title="${esc(x.namn)}${x.typ === 'free' ? ' (gratis)' : ''}">`).join('') || '<span class="muted">–</span>'}</td></tr>`).join('')}</tbody></table></div>`
       : `<p class="muted">${rader.length ? 'Inga filmer med det filtret.' : 'Inga önskelistor importerade än. Importera Letterboxd-exporten under Importera, så kommer watchlist.csv med.'}</p>`}
-    <p class="muted">Titlar utan egen sida här länkar till Letterboxd. TMDB-kopplingen för nya filmer på listorna görs i bakgrunden efter importen.</p>`;
+    <p class="muted">Strömma visar ${esc(VARA_TJANSTER.join(', '))} (data från JustWatch via TMDB, uppdateras varje vecka; … = inte hämtat än). Titlar utan egen sida här länkar till Letterboxd. TMDB-kopplingen för nya filmer på listorna görs i bakgrunden efter importen.</p>`;
   app.querySelectorAll('.knappar button').forEach((b) => { b.onclick = () => { satt('visa', b.dataset.v); visa(); }; });
   app.querySelector('table.onske')?.addEventListener('change', async (e) => {
     const cb = e.target.closest('input[type=checkbox][data-i]'); if (!cb) return;

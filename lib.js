@@ -91,3 +91,15 @@ export const fmt = (v, d = 0) => (v === null || v === undefined || Number.isNaN(
   : Number(v).toLocaleString('sv-SE', { minimumFractionDigits: d, maximumFractionDigits: d });
 export const tecken = (v, d = 2) => (v === null || v === undefined) ? '–' : (Number(v) > 0 ? '+' : Number(v) < 0 ? '−' : '±') + fmt(Math.abs(v), d);
 export const enc = encodeURIComponent;
+
+// ---------- strömningstjänster (TMDB watch/providers, data från JustWatch) ----------
+export const VARA_TJANSTER = ['SVT Play', 'Cineasterna', 'Netflix', 'Disney Plus', 'Amazon Prime Video'];
+export const arVar = (namn) => VARA_TJANSTER.some((v) => namn === v || namn.startsWith(`${v} `));
+export const STROMMA = ['flatrate', 'free', 'ads'];
+export const LOGO = 'https://image.tmdb.org/t/p/w45';
+// Unika tjänster att strömma hos (abonnemang, gratis, med reklam); våra tjänster först
+export function strommas(data) {
+  const sett = new Set();
+  return (data ?? []).filter((t) => STROMMA.includes(t.typ) && !sett.has(t.namn) && sett.add(t.namn))
+    .sort((a, b) => Number(arVar(b.namn)) - Number(arVar(a.namn)) || (a.prio ?? 99) - (b.prio ?? 99));
+}
