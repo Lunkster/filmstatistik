@@ -112,3 +112,17 @@ svg.diagram .grid { stroke: var(--grid); }
 .knapp { display: inline-block; text-decoration: none; border: 1px solid var(--linje); border-radius: 8px; padding: .45rem .8rem; }
 a.knapp.prim { background: var(--guld); color: #1a1408; border-color: var(--guld); font-weight: 600; }
 .knappar-rad { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+
+/* filmsida */
+.film-topp { display: grid; grid-template-columns: minmax(0, 220px) 1fr; gap: 1.25rem; align-items: start; }
+.affisch { width: 100%; border-radius: var(--radie); display: block; }
+.film-info h1 { font-size: 1.8rem; }
+.film-info p { margin: .3rem 0 .6rem; }
+.taggar { display: flex; flex-wrap: wrap; gap: .35rem; }
+.tagg { background: var(--yta-3); color: var(--text-2); border-radius: 999px; padding: .15rem .6rem; font-size: .85rem; text-decoration: none; }
+.fakta { display: grid; grid-template-columns: max-content 1fr; gap: .3rem 1rem; margin: 0; }
+.fakta dt { color: var(--text-3); }
+.fakta dd { margin: 0; }
+.crew { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .75rem; }
+table.smal { width: auto; }
+@media (max-width: 600px) { .film-topp { grid-template-columns: 110px 1fr; gap: .75rem; } .film-info h1 { font-size: 1.35rem; } }

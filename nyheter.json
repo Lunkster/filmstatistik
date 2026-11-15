@@ -1,5 +1,12 @@
 [
  {
+  "datum": "2026-11-15",
+  "punkter": [
+   "**Filmsidor:** klicka på en film för att se affisch, handling, fakta, rollista, bolag och nyckelord, allas betyg och visningar, vem som har den på sin önskelista, och knappar till TMDB, IMDb, Letterboxd, JustWatch och WatchAny (v0.5.0)",
+   "**Importera:** önskelistan i Letterboxd-exporten följer med vid import (v0.5.0)"
+  ]
+ },
+ {
   "datum": "2026-11-14",
   "punkter": [
    "**Importera:** knapp som öppnar Letterboxds exportlänk, och på mobilen en knapp som kopierar länken om Letterboxd-appen öppnas i stället (v0.4.5–v0.4.9)",

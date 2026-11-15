@@ -3,8 +3,9 @@
 import { api, allaRader, rpc, glomCache, login, logout, inloggad, esc, fmt, tecken, enc } from './lib.js';
 import { lasZip } from './zip.js';
 import { renderNyheter } from './nyheter.js';
+import { renderFilm } from './filmsida.js';
 
-const VERSION = '0.4.9';
+const VERSION = '0.5.0';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -12,6 +13,8 @@ const ROLLER = [
   ['producent', 'Producent'], ['exekutiv producent', 'Exekutiv producent'], ['foto', 'Foto'], ['musik', 'Musik'], ['klipp', 'Klipp'],
 ];
 const tmdbUrl = (typ, id) => `https://www.themoviedb.org/${typ === 'serie' ? 'tv' : 'movie'}/${id}`;
+// Länk till filmsidan i appen; saknas film_id går länken till TMDB
+const filmLank = (f) => (f.film_id ? `<a href="#/film/${f.film_id}">${esc(f.titel)}</a>` : f.tmdb_id ? `<a href="${tmdbUrl(f.typ, f.tmdb_id)}" target="_blank" rel="noopener">${esc(f.titel)}</a>` : esc(f.titel));
 
 // ---------- vems betyg ----------
 let vem = (() => { try { return localStorage.getItem('filmstatistik-vem') || 'Henrik'; } catch { return 'Henrik'; } })();
@@ -124,7 +127,7 @@ function tabell(rader, kol, { sort, upp = false, klick } = {}) {
   });
   return `<div class="tabell-wrap"><table id="${id}">${rita()}</table></div>`;
 }
-const filmlista = (filmer) => filmer.length ? `<ul class="lista-filmer">${filmer.map((f) => `<li>${stjarnor(f.betyg)} <a href="${tmdbUrl(f.typ, f.tmdb_id)}" target="_blank" rel="noopener">${esc(f.titel)}</a> <span class="muted">${f.ar ?? ''}${f.karaktar ? ` · ${esc(f.karaktar)}` : ''}</span></li>`).join('')}</ul>` : '<span class="muted">Inga filmer.</span>';
+const filmlista = (filmer) => filmer.length ? `<ul class="lista-filmer">${filmer.map((f) => `<li>${stjarnor(f.betyg)} ${filmLank(f)} <span class="muted">${f.ar ?? ''}${f.karaktar ? ` · ${esc(f.karaktar)}` : ''}</span></li>`).join('')}</ul>` : '<span class="muted">Inga filmer.</span>';
 
 // ---------- sidor ----------
 async function oversikt() {
@@ -223,7 +226,7 @@ async function filmerFor(koppling, faltId, tabellNamn, namn) {
   const kopp = await allaRader(`${koppling}?${faltId}=in.(${g.map((x) => x.tmdb_id).join(',')})&select=film_id&order=film_id`);
   const ids = [...new Set(kopp.map((x) => x.film_id))];
   const ut = [];
-  for (let i = 0; i < ids.length; i += 150) ut.push(...await api(`v_film?${V()}&film_id=in.(${ids.slice(i, i + 150).join(',')})&select=titel,ar,betyg,typ,tmdb_id&order=betyg.desc,ar.asc`));
+  for (let i = 0; i < ids.length; i += 150) ut.push(...await api(`v_film?${V()}&film_id=in.(${ids.slice(i, i + 150).join(',')})&select=film_id,titel,ar,betyg,typ,tmdb_id&order=betyg.desc,ar.asc`));
   ut.sort((a, b) => b.betyg - a.betyg || (a.ar ?? 0) - (b.ar ?? 0));
   return filmlista(ut);
 }
@@ -232,7 +235,7 @@ async function filmerForLand(iso) {
   const kopp = await allaRader(`v_film_land?land=eq.${enc(iso)}&select=film_id&order=film_id`);
   const ids = [...new Set(kopp.map((x) => x.film_id))];
   const ut = [];
-  for (let i = 0; i < ids.length; i += 150) ut.push(...await api(`v_film?${V()}&film_id=in.(${ids.slice(i, i + 150).join(',')})&select=titel,ar,betyg,typ,tmdb_id&order=betyg.desc,ar.asc`));
+  for (let i = 0; i < ids.length; i += 150) ut.push(...await api(`v_film?${V()}&film_id=in.(${ids.slice(i, i + 150).join(',')})&select=film_id,titel,ar,betyg,typ,tmdb_id&order=betyg.desc,ar.asc`));
   ut.sort((a, b) => b.betyg - a.betyg || (a.ar ?? 0) - (b.ar ?? 0));
   return filmlista(ut);
 }
@@ -314,7 +317,7 @@ async function filmer() {
     ${saknasHtml}
     <div class="filter"><label>Sök <input id="f-sok" type="search" value="${esc(sok)}" placeholder="titel"></label><span class="muted">${fmt(rader.length)} av ${fmt(alla.length)}</span></div>
     ${tabell(rader, [
-      { nyckel: 'titel', rubrik: 'Titel', html: (f) => `<a href="${tmdbUrl(f.typ, f.tmdb_id)}" target="_blank" rel="noopener">${esc(f.titel)}</a>${f.originaltitel && f.originaltitel !== f.titel ? ` <span class="muted">${esc(f.originaltitel)}</span>` : ''}${f.typ === 'serie' ? ' <span class="muted">(serie)</span>' : ''}` },
+      { nyckel: 'titel', rubrik: 'Titel', html: (f) => `${filmLank(f)}${f.originaltitel && f.originaltitel !== f.titel ? ` <span class="muted">${esc(f.originaltitel)}</span>` : ''}${f.typ === 'serie' ? ' <span class="muted">(serie)</span>' : ''}` },
       { nyckel: 'ar', rubrik: 'År', num: true, html: (f) => f.ar ?? '–' },
       { nyckel: 'betyg', rubrik: 'Mitt betyg', html: (f) => f.letterboxd_uri ? `<a href="${esc(f.letterboxd_uri)}" target="_blank" rel="noopener" style="text-decoration:none">${stjarnor(f.betyg)}</a>` : stjarnor(f.betyg) },
       { nyckel: 'tmdb_betyg_5', rubrik: 'TMDB', num: true, html: (f) => fmt(f.tmdb_betyg_5, 1) },
@@ -350,8 +353,8 @@ async function tittat() {
   const bio = taggar.find((t) => t.tagg === 'på bio');
   const TYPER = [['plats', 'Var'], ['sallskap', 'Med vem'], ['format', 'Format'], ['amne', 'Ämne'], ['ovrigt', 'Övrigt']];
   const lista = (tagg) => async () => {
-    const rader = await api(`v_loggning?${V()}&taggar=cs.${enc(`{"${tagg}"}`)}&order=datum.desc&limit=300&select=titel,ar,datum,betyg,tmdb_id,typ`);
-    return rader.length ? `<ul class="lista-filmer">${rader.map((f) => `<li>${f.betyg != null ? `${stjarnor(f.betyg)} ` : ''}${f.tmdb_id ? `<a href="${tmdbUrl(f.typ, f.tmdb_id)}" target="_blank" rel="noopener">${esc(f.titel)}</a>` : esc(f.titel)} <span class="muted">${f.ar ?? ''} · ${f.datum ?? ''}</span></li>`).join('')}</ul>` : '<span class="muted">Inga filmer.</span>';
+    const rader = await api(`v_loggning?${V()}&taggar=cs.${enc(`{"${tagg}"}`)}&order=datum.desc&limit=300&select=film_id,titel,ar,datum,betyg,tmdb_id,typ`);
+    return rader.length ? `<ul class="lista-filmer">${rader.map((f) => `<li>${f.betyg != null ? `${stjarnor(f.betyg)} ` : ''}${filmLank(f)} <span class="muted">${f.ar ?? ''} · ${f.datum ?? ''}</span></li>`).join('')}</ul>` : '<span class="muted">Inga filmer.</span>';
   };
   const tabeller = TYPER.map(([typ, rubrik]) => {
     const rader = taggar.filter((t) => t.typ === typ);
@@ -379,7 +382,7 @@ async function importera() {
   const val = [...vemSel.options].map((o) => o.value);
   app.innerHTML = `
     <h1>Importera</h1>
-    <p class="muted">Ladda upp din export från Letterboxd som den är, som zip-fil. Betyg, dagbok och etiketter uppdateras. Filerna läses i webbläsaren och bara betyg och dagbok skickas vidare.</p>
+    <p class="muted">Ladda upp din export från Letterboxd som den är, som zip-fil. Betyg, dagbok, etiketter och önskelista uppdateras. Filerna läses i webbläsaren och bara betyg, dagbok och önskelista skickas vidare.</p>
     <div class="kort imp">
       <div id="imp-exp"></div>
       <label>Vems export? <select id="imp-vem">${val.map((v) => `<option${v === vem ? ' selected' : ''}>${esc(v)}</option>`).join('')}</select></label>
@@ -406,19 +409,21 @@ async function importera() {
   fil.addEventListener('change', async () => {
     data = null; knapp.disabled = true; res.innerHTML = ''; info.textContent = '';
     try {
-      let ratings = null, diary = null;
+      let ratings = null, diary = null, watchlist = null;
       for (const f of fil.files) {
         if (/\.zip$/i.test(f.name)) {
           const z = await lasZip(await f.arrayBuffer());
           const hitta = (n) => z.namn.filter((x) => x === n || x.endsWith(`/${n}`)).sort((a, b) => a.length - b.length)[0];
           ratings = (await z.text(hitta('ratings.csv'))) ?? ratings;
           diary = (await z.text(hitta('diary.csv'))) ?? diary;
+          watchlist = (await z.text(hitta('watchlist.csv'))) ?? watchlist;
         } else if (/^ratings.*\.csv$/i.test(f.name)) ratings = await f.text();
         else if (/^diary.*\.csv$/i.test(f.name)) diary = await f.text();
+        else if (/^watchlist.*\.csv$/i.test(f.name)) watchlist = await f.text();
       }
       if (!ratings) throw new Error('Hittade ingen ratings.csv i filen.');
-      data = { ratings, diary };
-      info.textContent = `Hittade ${fmt(rader(ratings))} betyg och ${fmt(rader(diary))} dagboksposter.`;
+      data = { ratings, diary, watchlist };
+      info.textContent = `Hittade ${fmt(rader(ratings))} betyg, ${fmt(rader(diary))} dagboksposter och ${fmt(rader(watchlist))} filmer på önskelistan.`;
       knapp.disabled = false;
     } catch (e) { info.innerHTML = `<span class="fel">${esc(e.message)}</span>`; }
   });
@@ -428,6 +433,10 @@ async function importera() {
     knapp.disabled = true; res.innerHTML = '<p class="muted">Importerar …</p>';
     try {
       const r = await rpc('importera_export', { _anvandare: vemImp, _ratings: data.ratings, _diary: data.diary ?? '' });
+      let onske = null;
+      if (data.watchlist != null) {
+        try { onske = await rpc('importera_onskelista', { _anvandare: vemImp, _watchlist: data.watchlist }); } catch (e) { onske = { fel: e.message }; }
+      }
       glomCache();
       const nya = r.nya_titlar ?? [];
       res.innerHTML = `
@@ -436,7 +445,9 @@ async function importera() {
           <div class="tile"><div class="v">${fmt(r.betyg_andrade)}</div><div class="k">ändrade betyg</div></div>
           <div class="tile"><div class="v">${fmt(r.betyg_borttagna)}</div><div class="k">borttagna betyg</div></div>
           <div class="tile"><div class="v">${fmt(r.loggningar_nya)}</div><div class="k">nya loggningar</div></div>
+          ${onske && !onske.fel ? `<div class="tile"><div class="v">${fmt(onske.onskelista)}</div><div class="k">på önskelistan</div></div>` : ''}
         </div>
+        ${onske?.fel ? `<p class="fel">Önskelistan kunde inte importeras: ${esc(onske.fel)}</p>` : ''}
         ${nya.length ? `<p>Nya betyg: ${nya.slice(0, 40).map(esc).join(', ')}${nya.length > 40 ? ` och ${fmt(nya.length - 40)} till` : ''}.</p>` : ''}
         <p class="muted">Nya filmer kopplas till TMDB i bakgrunden, det tar några minuter. Statistiken uppdateras av nattjobbet, eller direkt vid nästa sidladdning för betyg och dagbok.</p>`;
     } catch (e) { res.innerHTML = `<p class="fel">${esc(e.message)}</p>`; }
@@ -444,10 +455,11 @@ async function importera() {
   });
 }
 
-const SIDOR = { '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: () => renderNyheter(app, VERSION) };
+const SIDOR = { film: () => renderFilm(app, routeDelar()[1] ?? '', { stjarnor }), '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: () => renderNyheter(app, VERSION) };
 let visarNr = 0;
+const routeDelar = () => { const d = (location.hash.replace(/^#\/?/, '').split('?')[0] || '').split('/'); d[0] = d[0] || ''; return d; };
 async function visa() {
-  const route = (location.hash.replace(/^#\/?/, '').split('?')[0]) || '';
+  const route = routeDelar()[0];
   if (route === 'logga-ut') { logout(); history.replaceState(null, '', '#/'); }
   if (!inloggad()) return inloggning();
   document.querySelector('.tabs').hidden = false; document.getElementById('loggaut').hidden = false;
@@ -456,8 +468,10 @@ async function visa() {
   try {
     if (!vemSel.options.length) await laddaAnvandare();
     const sida = SIDOR[route] ?? oversikt;
-    if (!app.firstElementChild || app.dataset.route !== route) app.innerHTML = '<p class="muted center">Laddar …</p>';
-    app.dataset.route = route;
+    const nyckel = routeDelar().join('/');
+    if (!app.firstElementChild || app.dataset.route !== nyckel) app.innerHTML = '<p class="muted center">Laddar …</p>';
+    app.dataset.route = nyckel;
+    if (route === 'film') scrollTo(0, 0);
     await sida();
     if (nr !== visarNr) return;
   } catch (err) {
