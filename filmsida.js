@@ -1,5 +1,5 @@
 // Filmsida: metadata från TMDB (sparad i film.*), allas betyg, visningar och önskelistor, länkar ut.
-import { api, esc, fmt, enc } from './lib.js';
+import { api, rpc, glomCache, esc, fmt, enc } from './lib.js';
 
 const BILD = 'https://image.tmdb.org/t/p/w342';
 const HISTORISKA = { SU: 'Sovjetunionen', YU: 'Jugoslavien', AN: 'Nederländska Antillerna', CS: 'Tjeckoslovakien', DD: 'Östtyskland', XC: 'Tjeckoslovakien', XG: 'Östtyskland' };
@@ -14,7 +14,7 @@ const forsok = async (p) => { try { return await p; } catch { return []; } }; //
 const timmar = (min) => (min ? `${Math.floor(min / 60)} h ${min % 60} min` : null);
 const person = (p) => `<a href="https://www.themoviedb.org/person/${p.tmdb_id}" target="_blank" rel="noopener">${esc(p.namn)}</a>`;
 
-export async function renderFilm(app, id, { stjarnor }) {
+export async function renderFilm(app, id, { stjarnor, vem }) {
   if (!/^\d+$/.test(id)) { app.innerHTML = '<p class="fel">Okänd film.</p>'; return; }
   const [[f], betyg, sedd, logg, lb, genrer, bolag, personer, ord, lander, onske] = await Promise.all([
     api(`film?id=eq.${id}&select=*`),
@@ -29,6 +29,7 @@ export async function renderFilm(app, id, { stjarnor }) {
     api(`v_film_land?film_id=eq.${id}&select=land`),
     forsok(api(`v_onskelista?film_id=eq.${id}&select=anvandare,tillagd`)),
   ]);
+  const gem = f ? await forsok(api(`gemensam?aktiv=is.true&or=(and(typ.eq.${f.typ},tmdb_id.eq.${f.tmdb_id})${lb[0]?.letterboxd_uri ? `,letterboxd_uri.eq.${enc(`"${lb[0].letterboxd_uri}"`)}` : ''})&select=tillagd,tillagd_av&limit=1`, { fresh: true })) : [];
   if (!f) { app.innerHTML = '<p class="fel">Filmen finns inte.</p>'; return; }
   const serie = f.typ === 'serie';
   const tmdbTyp = serie ? 'tv' : 'movie';
@@ -37,7 +38,7 @@ export async function renderFilm(app, id, { stjarnor }) {
     ['TMDB', `https://www.themoviedb.org/${tmdbTyp}/${f.tmdb_id}`],
     f.imdb_id ? ['IMDb', `https://www.imdb.com/title/${enc(f.imdb_id)}/`] : null,
     lbUri ? ['Letterboxd', lbUri] : null,
-    ['JustWatch', `https://www.justwatch.com/se/s%C3%B6k?q=${enc(f.titel)}`],
+    ['JustWatch', `https://www.justwatch.com/se/search?q=${enc(f.titel)}`],
     ['WatchAny', `https://watchany.stream/${tmdbTyp}/${f.tmdb_id}-${slug(f.originaltitel || f.titel)}`],
   ].filter(Boolean);
 
@@ -80,6 +81,7 @@ export async function renderFilm(app, id, { stjarnor }) {
     </div>
     <div class="rutnat" style="margin-top:1rem">
       <div class="kort"><h2>Våra betyg</h2>${betygHtml}
+        <p><label class="gem-val"><input type="checkbox" id="gem"${gem.length ? ' checked' : ''}> På vår gemensamma önskelista</label>${gem[0] ? ` <span class="muted">sedan ${String(gem[0].tillagd).slice(0, 10)}${gem[0].tillagd_av ? ` (${esc(gem[0].tillagd_av)})` : ''}</span>` : ''}</p>
         ${onske.length ? `<p>På önskelistan hos ${onske.map((o) => `<b>${esc(o.anvandare)}</b>${o.tillagd ? ` <span class="muted">sedan ${o.tillagd}</span>` : ''}`).join(', ')}.</p>` : ''}
       </div>
       <div class="kort"><h2>Fakta</h2><dl class="fakta">${fakta.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join('')}</dl></div>
@@ -89,5 +91,14 @@ export async function renderFilm(app, id, { stjarnor }) {
     <h2>Rollista</h2><div class="kort">${castHtml}</div>
     ${bolag.length ? `<h2>${serie ? 'Bolag och kanaler' : 'Produktionsbolag'}</h2><div class="kort"><ul class="lista-filmer">${bolag.filter((b) => b.bolag).map(({ bolag: b }) => `<li><a href="#/bolag?min=1&sok=${enc(b.namn)}">${esc(b.namn)}</a>${b.land ? ` <span class="muted">${esc(landNamn(b.land))}</span>` : ''}</li>`).join('')}</ul></div>` : ''}
     ${ord.length ? `<h2>Nyckelord</h2><p class="taggar">${ord.map((o) => o.nyckelord?.namn).filter(Boolean).map((n) => `<span class="tagg">${esc(n)}</span>`).join('')}</p>` : ''}`;
+  const gemCb = app.querySelector('#gem');
+  gemCb.addEventListener('change', async () => {
+    gemCb.disabled = true;
+    try {
+      await rpc('satt_gemensam', { _letterboxd_uri: lb[0]?.letterboxd_uri ?? null, _tmdb_id: f.tmdb_id, _typ: f.typ, _titel: f.titel, _ar: f.ar, _vem: vem(), _aktiv: gemCb.checked });
+      glomCache();
+    } catch (e) { gemCb.checked = !gemCb.checked; gemCb.closest('p').insertAdjacentHTML('beforeend', `<span class="fel"> ${esc(e.message)}</span>`); }
+    gemCb.disabled = false;
+  });
   app.querySelector('.tillbaka').addEventListener('click', (e) => { if (history.length > 1) { e.preventDefault(); history.back(); } });
 }

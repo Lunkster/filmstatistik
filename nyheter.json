@@ -2,6 +2,7 @@
  {
   "datum": "2026-11-15",
   "punkter": [
+   "**Önskelista:** ny flik med era Letterboxd-önskelistor sida vid sida – filmer som ni båda vill se står först – och en kolumn där ni bockar i vad som är gemensamt önskemål. Det går också att bocka i på filmsidan. JustWatch-knappen på filmsidan fungerar nu (v0.6.0)",
    "**Filmsidor:** klicka på en film för att se affisch, handling, fakta, rollista, bolag och nyckelord, allas betyg och visningar, vem som har den på sin önskelista, och knappar till TMDB, IMDb, Letterboxd, JustWatch och WatchAny (v0.5.0)",
    "**Importera:** önskelistan i Letterboxd-exporten följer med vid import (v0.5.0)"
   ]

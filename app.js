@@ -4,8 +4,9 @@ import { api, allaRader, rpc, glomCache, login, logout, inloggad, esc, fmt, teck
 import { lasZip } from './zip.js';
 import { renderNyheter } from './nyheter.js';
 import { renderFilm } from './filmsida.js';
+import { renderOnskelista } from './onskelista.js';
 
-const VERSION = '0.5.0';
+const VERSION = '0.6.0';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -455,7 +456,7 @@ async function importera() {
   });
 }
 
-const SIDOR = { film: () => renderFilm(app, routeDelar()[1] ?? '', { stjarnor }), '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: () => renderNyheter(app, VERSION) };
+const SIDOR = { film: () => renderFilm(app, routeDelar()[1] ?? '', { stjarnor, vem: () => vem }), onskelista: () => renderOnskelista(app, { vem: () => vem, params, satt, visa }), '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: () => renderNyheter(app, VERSION) };
 let visarNr = 0;
 const routeDelar = () => { const d = (location.hash.replace(/^#\/?/, '').split('?')[0] || '').split('/'); d[0] = d[0] || ''; return d; };
 async function visa() {
