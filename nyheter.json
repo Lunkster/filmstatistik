@@ -1,5 +1,11 @@
 [
  {
+  "datum": "2026-11-25",
+  "punkter": [
+   "**Sök:** förstoringsglaset uppe till höger söker i hela appen – filmer och serier (även från önskelistor och tips) med era betyg, personer med antal filmer per roll (tryck på antalet för filmografin) och bolag. Finns inget kan sökningen skickas vidare till TMDB för att lägga till filmen (v0.11.0)"
+  ]
+ },
+ {
   "datum": "2026-11-15",
   "punkter": [
    "**Tips:** ny flik med filmer ni inte har sett men borde gilla – välj Alla för tips till er båda, eller en av er. Varje tips visar varför (regissörer, skådespelare och filmer ni gillat), var det går att strömma, och knappar för att lägga det på den gemensamma önskelistan eller slippa se det igen (v0.10.0)",

@@ -7,8 +7,9 @@ import { renderFilm } from './filmsida.js';
 import { renderOnskelista } from './onskelista.js';
 import { renderLaggTill, tagEmotDelning } from './laggtill.js';
 import { renderTips } from './tips.js';
+import { renderSok } from './sok.js';
 
-const VERSION = '0.10.0';
+const VERSION = '0.11.0';
 const app = document.getElementById('app');
 const tipsEl = document.getElementById('tips');
 const ROLLER = [
@@ -347,7 +348,7 @@ async function filmer() {
 }
 
 function inloggning(fel = '') {
-  document.querySelector('.tabs').hidden = true; document.querySelector('.vem').hidden = true; document.getElementById('loggaut').hidden = true;
+  document.querySelector('.tabs').hidden = true; document.querySelector('.sok-ikon').hidden = true; document.querySelector('.vem').hidden = true; document.getElementById('loggaut').hidden = true;
   app.innerHTML = `<form class="login" id="login"><h1>Filmstatistik</h1><label for="kod">Kod</label>
     <input id="kod" type="password" autocomplete="current-password" required autofocus>
     <button class="prim" type="submit">Logga in</button>${fel ? `<p class="fel">${esc(fel)}</p>` : ''}</form>`;
@@ -475,14 +476,15 @@ async function importera() {
   });
 }
 
-const SIDOR = { film: () => renderFilm(app, routeDelar()[1] ?? '', { stjarnor, vem: () => vem }), onskelista: () => renderOnskelista(app, { vem: () => vem, params, satt, visa }), 'lagg-till': () => renderLaggTill(app, { vem: () => vem, params }), tips: () => renderTips(app, { vem: () => vem, params, satt, visa }), '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: async () => { await importera(); document.getElementById('nytt')?.scrollIntoView(); } };
+const SIDOR = { film: () => renderFilm(app, routeDelar()[1] ?? '', { stjarnor, vem: () => vem }), onskelista: () => renderOnskelista(app, { vem: () => vem, params, satt, visa }), 'lagg-till': () => renderLaggTill(app, { vem: () => vem, params }), tips: () => renderTips(app, { vem: () => vem, params, satt, visa }), sok: () => renderSok(app, { params, satt, stjarnor }), '': oversikt, personer, genrer, bolag, lander, filmer, tittat, importera, nyheter: async () => { await importera(); document.getElementById('nytt')?.scrollIntoView(); } };
 let visarNr = 0;
 const routeDelar = () => { const d = (location.hash.replace(/^#\/?/, '').split('?')[0] || '').split('/'); d[0] = d[0] || ''; return d; };
 async function visa() {
   const route = routeDelar()[0];
   if (route === 'logga-ut') { logout(); history.replaceState(null, '', '#/'); }
   if (!inloggad()) return inloggning();
-  document.querySelector('.tabs').hidden = false; document.getElementById('loggaut').hidden = false;
+  document.querySelector('.tabs').hidden = false; document.querySelector('.sok-ikon').hidden = false; document.getElementById('loggaut').hidden = false;
+  document.querySelector('.sok-ikon').classList.toggle('aktiv', route === 'sok');
   document.querySelectorAll('.tabs a').forEach((a) => a.classList.toggle('aktiv', a.dataset.route === ({ 'lagg-till': 'onskelista', nyheter: 'importera', film: '' }[route] ?? route)));
   const nr = ++visarNr;
   try {

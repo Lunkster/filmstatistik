@@ -177,3 +177,18 @@ ol.topp li { margin-bottom: .2rem; }
 .tips-knappar { margin-top: .5rem; }
 .tips-knappar button:not(.prim) { font-size: .85rem; padding: .3rem .6rem; }
 @media (max-width: 600px) { .tips-kort { grid-template-columns: 70px 1fr; gap: .75rem; } .tips-kort img, .tips-kort .lt-tom { width: 70px; } }
+
+/* sök */
+.sok-ikon { color: var(--text-2); display: inline-flex; padding: .4rem; border-radius: 999px; }
+.sok-ikon.aktiv { background: var(--yta-3); color: var(--text); }
+.sok-ikon[hidden] { display: none; }
+.sok-lista { list-style: none; margin: 0 0 1rem; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: .25rem 1rem; }
+.sok-rad { display: flex; gap: .75rem; align-items: flex-start; padding: .4rem; border-radius: 8px; color: var(--text); text-decoration: none; }
+a.sok-rad:hover { background: var(--yta-3); }
+.sok-rad img, .sok-tom { width: 46px; height: 69px; object-fit: cover; border-radius: 4px; flex: none; background: var(--yta-3); }
+.sok-rad img.rund, .sok-tom.rund { width: 40px; height: 40px; border-radius: 50%; }
+.sok-lista.personer li { grid-column: auto; }
+.sok-lista .topp-filmer { margin: 0 0 .5rem 3.2rem; }
+.sok-betyg { white-space: nowrap; font-size: .9rem; color: var(--text-2); margin-right: .5rem; }
+.sok-tmdb { margin-top: 1.5rem; }
+@media (max-width: 700px) { .sok-ikon { order: 2; margin-left: auto; } }
